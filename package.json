@@ -1,0 +1,20 @@
+{
+  "name": "mongofb",
+  "description": "Mongo Firebase",
+  "version": "0.1.1",
+  "author": "Bryant Williams <b.n.williams@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/scien/mongofb.git"
+  },
+  "dependencies": {
+    "asset-wrap": "0.2.3",
+    "deepmerge": "0.2.7",
+    "express": "3.2.6",
+    "firebase": "0.5.x",
+    "firebase-token-generator": "0.1.x",
+    "mongodb": "1.2.9",
+    "underscore": "1.4.4"
+  },
+  "main": "./lib/server"
+}
