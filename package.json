@@ -1,7 +1,7 @@
 {
   "name": "mongofb",
   "description": "Mongo Firebase",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": {
     "name": "Bryant Williams",
     "email": "b.n.williams@gmail.com"

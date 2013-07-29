@@ -77,7 +77,7 @@ exports = module.exports = (cfg) ->
 
 
       # helpers
-      auth = (next) ->
+      auth = (req, res, next) ->
         if req.query.token
           ref = new Firebase cfg.firebase.url
           ref.auth req.query.token, (err, user) ->
@@ -151,7 +151,8 @@ exports = module.exports = (cfg) ->
       # db.collection.remove
       # the format is /sync/:collection/:id and not /:collection/:sync/:id to
       # match firebase urls. the key in firebase is /:collection/:id
-      router.route 'GET', "#{cfg.root}/sync/:collection/:id*", (req, res, next) ->
+      url = "#{cfg.root}/sync/:collection/:id*"
+      router.route 'GET', url, auth, (req, res, next) ->
         target = unescape(req.params[1]) if req.params[1]
         # TODO: if target, only update that part of the document
 
@@ -174,7 +175,8 @@ exports = module.exports = (cfg) ->
 
 
       # db.collection.find
-      router.route 'GET', "#{cfg.root}/:collection/find", (req, res, next) ->
+      url = "#{cfg.root}/:collection/find"
+      router.route 'GET', url, auth, (req, res, next) ->
         cache (next) ->
           # query
           qry = hook 'before', 'find', req.query
@@ -194,7 +196,8 @@ exports = module.exports = (cfg) ->
 
 
       # db.collection.findOne
-      router.route 'GET', "#{cfg.root}/:collection/findOne", (req, res, next) ->
+      url = "#{cfg.root}/:collection/findOne"
+      router.route 'GET', url, auth, (req, res, next) ->
         cache (next) ->
           qry = hook 'before', 'find', req.query
           collection = db.collection req.params.collection
@@ -206,7 +209,8 @@ exports = module.exports = (cfg) ->
 
 
       # db.collection.findById
-      router.route 'GET', "#{cfg.root}/:collection/:id*", (req, res, next) ->
+      url = "#{cfg.root}/:collection/:id*"
+      router.route 'GET', url, auth, (req, res, next) ->
         cache (next) ->
           target = unescape(req.params[1]).replace /\//g, '.' if req.params[1]
           qry = {_id: new mongodb.ObjectID req.params.id}

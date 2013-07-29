@@ -9,6 +9,7 @@
   - [Server Configuration](#server-configuration)
   - [Server API](#server-api)
   - [Server Hooks](#server-hooks)
+  - [Authentication](#authentication)
   - [Client SDK](#client-sdk)
  - [Examples](#examples)
   - [Server](#server)
@@ -146,7 +147,7 @@ app.use mongofb {
       after:
         find: (doc) ->
           # hide private user information to other users
-          return doc if @user.auth.id == doc.id
+          return doc if @user?.auth?.id == doc.id
           {_id: doc._id, public: doc.public}
     posts:
       before:
@@ -163,6 +164,12 @@ app.use mongofb {
           query.limit = 10
 }
 ```
+
+### Authentication
+authenticate any request by passing a token query parameter with the
+value being the users' firebase token.
+
+The @user can then be referenced in your hooks
 
 ### Client SDK
 How to use the Javascript SDK
