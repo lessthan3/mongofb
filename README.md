@@ -8,6 +8,7 @@
  - [Usage](#usage)
   - [Server Configuration](#server-configuration)
   - [Server API](#server-api)
+  - [Server Hooks](#server-hooks)
   - [Client SDK](#client-sdk)
  - [Examples](#examples)
   - [Server](#server)
@@ -119,6 +120,48 @@ access the author's name of post 510b56c221168da296f27bd5.
 
 The corresponding Firebase URL for that data would be
 https://my-firebase.firebaseio.com/posts/510b56c221168da296f27bd5/author/name
+```
+
+### Server Hooks
+Sometimes you may want to modify the response from your api, or set default
+values for parameters, or do something special if the user is authenticated.
+This is all possible with MongoFB Hooks.
+
+You can define your hooks in your server configuration. The current hooks
+available are...
+
+new_query = collection.before.find(query)
+
+new_doc = collection.after.find(doc)
+
+
+Example Usage
+```
+app.use mongofb {
+  firebase: config.firebase
+  mongofb: config.mongodb
+  root: '/api/1'
+  hooks:
+    users:
+      after:
+        find: (doc) ->
+          # hide private user information to other users
+          return doc if @user.auth.id == doc.id
+          {_id: doc._id, public: doc.public}
+    posts:
+      before:
+        find: (query) ->
+          # an author changed their name
+          if query.author?.name == 'joe'
+            query.author.name = 'joey'
+
+          # if we search for football or baseball, also search all sports
+          if query.tag in ['football', 'baseball']
+            query.tag = [query.tag, 'sports']
+
+          # force a small limit
+          query.limit = 10
+}
 ```
 
 ### Client SDK
