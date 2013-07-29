@@ -1,4 +1,5 @@
-_ = require 'underscore'
+# dependencies
+express = require 'express'
 Firebase = require 'firebase'
 FirebaseTokenGenerator = require 'firebase-token-generator'
 LRU = require 'lru-cache'
@@ -6,16 +7,20 @@ merge = require 'deepmerge'
 mongodb = require 'mongodb'
 wrap = require 'asset-wrap'
 
-module.exports = (app, config, next) ->
+
+# exports
+exports = module.exports = (cfg) ->
+
 
   # configuration
-  config = merge {
+  cfg = merge {
     root: '/api'
     cache:
       max: 100
       maxAge: 1000*60*5
     firebase:
       url: 'https://vn42xl9zsez.firebaseio-demo.com/'
+      secret: null
     mongodb:
       db: 'test'
       host: 'localhost'
@@ -30,28 +35,51 @@ module.exports = (app, config, next) ->
           poolSize: 1
           socketOptions:
             keepAlive: 120
-  }, config
+  }, cfg
 
-  # connect to mongodb
-  m = config.mongodb
-  url = "mongodb://#{m.user}:#{m.pass}@#{m.host}:#{m.port}/#{m.db}"
-  url = url.replace ':@', '@'
-  mongodb.MongoClient.connect url, m.options, (err, db) ->
-    return next err if err
 
-    # connect to firebase
-    fb = new Firebase config.firebase.url
-    token_generator = new FirebaseTokenGenerator config.firebase.secret
-    token = token_generator.createToken {}, {
-      expires: new Date('2020-01-01 00:00:00 UTC').getTime()
-      admin: true
-    }
-    fb.auth token, ->
+  # variables
+  db = null
+  fb = null
+
+
+  # connect to firebase and mongodb
+  connect = (next) ->
+    return next() if db and fb
+    m = cfg.mongodb
+    url = "mongodb://#{m.user}:#{m.pass}@#{m.host}:#{m.port}/#{m.db}"
+    url = url.replace ':@', '@'
+    mongodb.MongoClient.connect url, m.options, (err, database) ->
+      return next err if err
+      db = database
+      fb = new Firebase cfg.firebase.url
+      if cfg.firebase.secret
+        token_generator = new FirebaseTokenGenerator cfg.firebase.secret
+        token = token_generator.createToken {}, {
+          expires: new Date('2020-01-01 00:00:00 UTC').getTime()
+          admin: true
+        }
+        fb.auth token, (err) ->
+          next err
+      else
+        next()
+
+
+  # middleware
+  (req, res, next) ->
+    connect (err) ->
+      return next err if err
+
+
+      # databases
+      req.db = db
+      req.fb = fb
+
 
       # helpers
-      auth = (req, res, next) ->
+      auth = (next) ->
         if req.query.token
-          ref = new Firebase config.firebase.url
+          ref = new Firebase cfg.firebase.url
           ref.auth req.query.token, (err, user) ->
             delete req.query.token
             req.user = user
@@ -59,9 +87,9 @@ module.exports = (app, config, next) ->
         else
           next()
       
-      _cache = new LRU config.cache
-      cache = (req, res, fn) ->
-        max_age = config.cache.maxAge / 1000
+      _cache = new LRU cfg.cache
+      cache = (fn) ->
+        max_age = cfg.cache.maxAge / 1000
         max_age = 0 if req.query.bust == '1'
         val = 'private, max-age=0, no-cache, no-store, must-revalidate'
         val = "public, max-age=#{max_age}, must-revalidate" if max_age > 0
@@ -76,29 +104,39 @@ module.exports = (app, config, next) ->
           _cache.set key, data
           res.send data
 
-      hook = (arg, time, method) ->
-        @db = db
-        @fb = fb
-        fn = config.hooks?[@params.collection]?[time]?[method]
+      contentType = (type) ->
+        res.set 'Content-Type', type
+
+      hook = (time, method, arg) ->
+        fn = cfg.hooks?[req.params.collection]?[time]?[method]
         if fn
-          fn.apply @, [arg]
+          fn.apply req, [arg]
         else
           arg
+  
 
       # routes
-      app.get "#{config.root}/mongofb.js", (req, res, next) ->
-        res.header 'Content-Type', 'text/javascript'
-        cache req, res, (next) ->
+      router = new express.Router()
+
+
+      # client javascript
+      router.route 'GET', "#{cfg.root}/mongofb.js", (req, res, next) ->
+        contentType 'text/javascript'
+        cache (next) ->
           asset = new wrap.Snockets {
             src: "#{__dirname}/client.coffee"
           }, (err) ->
             return res.send 500, err if err
             next asset.data
 
-      app.get "#{config.root}/Firebase", (req, res, next) ->
-        res.send config.firebase.url
 
-      app.get "#{config.root}/ObjectID", (req, res, next) ->
+      # firebase url
+      router.route 'GET', "#{cfg.root}/Firebase", (req, res, next) ->
+        res.send cfg.firebase.url
+
+
+      # ObjectID for creating documents
+      router.route 'GET', "#{cfg.root}/ObjectID", (req, res, next) ->
         # TODO: generator ObjectIDs in a better way
         tmp = db.collection 'tmp'
         tmp.insert {}, (err, docs) ->
@@ -106,7 +144,14 @@ module.exports = (app, config, next) ->
           tmp.remove {_id: id}, (err) ->
             res.send id.toString()
 
-      app.get "#{config.root}/update/:collection/:id*", (req, res, next) ->
+
+      # sync data from firebase
+      # db.collection.update
+      # db.collection.insert
+      # db.collection.remove
+      # the format is /sync/:collection/:id and not /:collection/:sync/:id to
+      # match firebase urls. the key in firebase is /:collection/:id
+      router.route 'GET', "#{cfg.root}/sync/:collection/:id*", (req, res, next) ->
         target = unescape(req.params[1]) if req.params[1]
         # TODO: if target, only update that part of the document
 
@@ -120,17 +165,19 @@ module.exports = (app, config, next) ->
             opt = {safe: true, upsert: true}
             collection.update qry, doc, opt, (err) ->
               return res.send 500, err if err
-              doc = hook.apply req, [doc, 'after', 'find']
+              doc = hook 'after', 'find', doc
               res.send doc
           else
             collection.remove qry, (err) ->
               return res.end 500, err if err
               res.send null
 
-      app.get "#{config.root}/:collection/find", auth, (req, res, next) ->
-        cache req, res, (next) ->
+
+      # db.collection.find
+      router.route 'GET', "#{cfg.root}/:collection/find", (req, res, next) ->
+        cache (next) ->
           # query
-          qry = hook.apply req, [req.query, 'before', 'find']
+          qry = hook 'before', 'find', req.query
 
           # options
           qry.limit ?= 1000
@@ -142,21 +189,25 @@ module.exports = (app, config, next) ->
           collection = db.collection req.params.collection
           collection.find(qry, opt).toArray (err, docs) ->
             return res.send 500, err if err
-            docs = (hook.apply req, [doc, 'after', 'find'] for doc in docs)
+            docs = (hook('after', 'find', doc) for doc in docs)
             next docs
 
-      app.get "#{config.root}/:collection/findOne*", auth, (req, res, next) ->
-        cache req, res, (next) ->
-          qry = hook.apply req, [req.query, 'before', 'find']
+
+      # db.collection.findOne
+      router.route 'GET', "#{cfg.root}/:collection/findOne", (req, res, next) ->
+        cache (next) ->
+          qry = hook 'before', 'find', req.query
           collection = db.collection req.params.collection
           collection.findOne qry, (err, doc) ->
             return res.send 500, err if err
             return res.send 404 if not doc
-            doc = hook.apply req, [doc, 'after', 'find']
+            doc = hook 'after', 'find', doc
             next doc
 
-      app.get "#{config.root}/:collection/:id*", auth, (req, res, next) ->
-        cache req, res, (next) ->
+
+      # db.collection.findById
+      router.route 'GET', "#{cfg.root}/:collection/:id*", (req, res, next) ->
+        cache (next) ->
           target = unescape(req.params[1]).replace /\//g, '.' if req.params[1]
           qry = {_id: new mongodb.ObjectID req.params.id}
           prj = {}
@@ -166,9 +217,11 @@ module.exports = (app, config, next) ->
           collection.findOne qry, prj, (err, doc) ->
             return res.send 500, err if err
             return res.send 404 if not doc
-            doc = hook.apply req, [doc, 'after', 'find']
+            doc = hook 'after', 'find', 'doc'
             doc = doc?[key] for key in target.split '.' if target
             next doc
 
-      next null, db, fb if next
+
+      # execute routes
+      router._dispatch req, res, next
 

@@ -115,7 +115,7 @@ class mongofb.Collection
       ref.set doc, (err) =>
         return next?(err) if err
         ref.setPriority priority if priority
-        @database.request "update/#{@name}/#{id}", (err, doc) =>
+        @database.request "sync/#{@name}/#{id}", (err, doc) =>
           return next?(err) if err
           next?(null, new mongofb.Document @, doc)
 
@@ -160,7 +160,7 @@ class mongofb.Collection
     ref = @database.firebase.child "#{@name}/#{_id}"
     ref.set null, (err) =>
       return next?(err) if err
-      @database.request "update/#{@name}/#{_id}", (err, doc) =>
+      @database.request "sync/#{@name}/#{_id}", (err, doc) =>
         return next?(err) if err
         next?(null)
 
@@ -286,7 +286,7 @@ class mongofb.DocumentRef extends mongofb.EventEmitter
     ref = @database.firebase.child @key
     ref.set value, (err) =>
       return next?(err) if err
-      @database.request "update/#{@key}", (err, doc) =>
+      @database.request "sync/#{@key}", (err, doc) =>
         return next?(err) if err
         @updateData value
         next?(null)
