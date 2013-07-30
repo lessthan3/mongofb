@@ -298,7 +298,9 @@ class mongofb.DocumentRef extends mongofb.EventEmitter
     else
       [keys..., key] = @path
       target = @document.data
-      target = target[k] for k in keys
+      for k in keys
+        target[k] ?= {}
+        target = target[k]
       target[key] = data
 
   val: ->

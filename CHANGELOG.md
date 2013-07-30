@@ -1,3 +1,7 @@
+**v0.2.3** (2013-07-30)
+
+ - fix updateData bug where a key might not exist yet
+
 **v0.2.2** (2013-07-29)
 
  - fix authentication by checking for token parameter
