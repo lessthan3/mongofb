@@ -1,3 +1,7 @@
+**v0.2.4** (2013-07-30)
+
+ - fix findById bug
+
 **v0.2.3** (2013-07-30)
 
  - fix updateData bug where a key might not exist yet

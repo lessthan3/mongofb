@@ -221,7 +221,7 @@ exports = module.exports = (cfg) ->
           collection.findOne qry, prj, (err, doc) ->
             return res.send 500, err if err
             return res.send 404 if not doc
-            doc = hook 'after', 'find', 'doc'
+            doc = hook 'after', 'find', doc
             doc = doc?[key] for key in target.split '.' if target
             next doc
 
