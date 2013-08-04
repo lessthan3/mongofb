@@ -1,14 +1,7 @@
 {
-  "name": "mongofb",
-  "description": "Mongo Firebase",
-  "version": "0.2.4",
   "author": {
     "name": "Bryant Williams",
     "email": "b.n.williams@gmail.com"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/scien/mongofb.git"
   },
   "dependencies": {
     "asset-wrap": "0.3.x",
@@ -19,5 +12,12 @@
     "lru-cache": "2.2.2",
     "mongodb": "1.3.x"
   },
-  "main": "./lib/server"
+  "description": "Mongo Firebase",
+  "main": "./lib/server",
+  "name": "mongofb",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/scien/mongofb.git"
+  },
+  "version": "0.2.5
 }

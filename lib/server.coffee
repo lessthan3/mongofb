@@ -118,6 +118,17 @@ exports = module.exports = (cfg) ->
       # routes
       router = new express.Router()
 
+      
+      # fix query parameters
+      router.route 'GET', "#{cfg.root}/*", (req, res, next) ->
+        map =
+          'false': false
+          'true': true
+          'null': null
+
+        for k, v of req.query
+          req.query[k] = map[v] if v of map
+        next()
 
       # client javascript
       router.route 'GET', "#{cfg.root}/mongofb.js", (req, res, next) ->

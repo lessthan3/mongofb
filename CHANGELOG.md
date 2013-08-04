@@ -1,3 +1,7 @@
+**v0.2.5** (2013-08-04)
+
+ - parse null, true, false into actual values
+
 **v0.2.4** (2013-07-30)
 
  - fix findById bug
