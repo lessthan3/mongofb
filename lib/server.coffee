@@ -16,6 +16,7 @@ exports = module.exports = (cfg) ->
   cfg = merge {
     root: '/api'
     cache:
+      enabled: true
       max: 100
       maxAge: 1000*60*5
     firebase:
@@ -91,14 +92,17 @@ exports = module.exports = (cfg) ->
       cache = (fn) ->
         max_age = cfg.cache.maxAge / 1000
         max_age = 0 if req.query.bust == '1'
+
         val = 'private, max-age=0, no-cache, no-store, must-revalidate'
-        val = "public, max-age=#{max_age}, must-revalidate" if max_age > 0
+        if cfg.cache.enabled and max_age > 0
+          val = "public, max-age=#{max_age}, must-revalidate"
         res.set 'Cache-Control', val
         key = req.url.replace '&bust=1', ''
         if req.query.bust == '1'
           _cache.del key
           delete req.query.bust
-        return res.send _cache.get(key) if _cache.has(key)
+        if cfg.cache.enabled and _cache.has key
+          return res.send _cache.get key
         delete req.query._
         fn (data) ->
           _cache.set key, data

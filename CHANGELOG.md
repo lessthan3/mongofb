@@ -1,3 +1,7 @@
+**v0.2.6** (2013-08-11)
+
+ - allow cache to be disabled
+
 **v0.2.5** (2013-08-04)
 
  - parse null, true, false into actual values
