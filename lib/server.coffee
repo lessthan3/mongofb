@@ -9,8 +9,8 @@ wrap = require 'asset-wrap'
 
 
 # exports
-exports = module.exports = (cfg) ->
-
+exports.client = require './client'
+exports.server = (cfg) ->
 
   # configuration
   cfg = merge {
@@ -57,7 +57,7 @@ exports = module.exports = (cfg) ->
       if cfg.firebase.secret
         token_generator = new FirebaseTokenGenerator cfg.firebase.secret
         token = token_generator.createToken {}, {
-          expires: new Date('2020-01-01 00:00:00 UTC').getTime()
+          expires: Date.now() + 1000*60*60*24*30
           admin: true
         }
         fb.auth token, (err) ->
@@ -92,7 +92,6 @@ exports = module.exports = (cfg) ->
       cache = (fn) ->
         max_age = cfg.cache.maxAge / 1000
         max_age = 0 if req.query.bust == '1'
-
         val = 'private, max-age=0, no-cache, no-store, must-revalidate'
         if cfg.cache.enabled and max_age > 0
           val = "public, max-age=#{max_age}, must-revalidate"

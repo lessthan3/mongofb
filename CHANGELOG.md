@@ -1,3 +1,7 @@
+**v0.3.0** (2013-10-12)
+
+ - make javascript sdk accessible server-side
+
 **v0.2.6** (2013-08-11)
 
  - allow cache to be disabled

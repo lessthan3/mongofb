@@ -9,9 +9,47 @@
 # DocumentRef
 #
 
-window.mongofb = {}
+if typeof window != 'undefined'
+  exports = window.mongofb = {}
+  extend = (target, object) ->
+    $.extend true, target, object
+  Firebase = window.Firebase
+  fetch = (args) ->
+    result = null
+    if args.next
+      success = (data) -> args.next null, data
+      error = (jqXHR, textStatus, err) -> args.next err
+      async = true
+    else
+      success = (data) -> result = data
+      error = -> result = null
+      async = false
+    $.ajax {
+      url: args.url
+      cache: args.cache
+      type: 'GET'
+      data: args.params
+      success: success
+      error: error
+      async: async
+    }
+    return result
 
-window.mongofb.utils =
+else
+  exports = module.exports = {}
+  extend = require 'node.extend'
+  request = require 'request'
+  Firebase = require 'Firebase'
+  fetch = (args) ->
+    request {
+      url: args.url
+      qs: args.params
+      method: 'GET'
+    }, (err, resp, body) =>
+      if args.json then body = JSON.parse body
+      args.next err, body
+
+exports.utils =
   isEquals: (a, b) ->
     return false if a and not b
     return false if b and not a
@@ -23,7 +61,7 @@ window.mongofb.utils =
     for k of a
       switch typeof a[k]
         when 'object'
-          return false if not mongofb.utils.isEquals a[k], b[k]
+          return false if not exports.utils.isEquals a[k], b[k]
         when 'function'
           return false if a[k].toString() != b[k].toString()
         else
@@ -32,7 +70,7 @@ window.mongofb.utils =
   startsWith: (str, target) ->
     str.slice(0, target.length) == target
 
-class mongofb.EventEmitter
+class exports.EventEmitter
   constructor: ->
     @events = {}
 
@@ -48,17 +86,24 @@ class mongofb.EventEmitter
     @events[event] ?= []
     @events[event].filter (fn) -> callback isnt null and fn isnt callback
 
-class mongofb.Database
-  constructor: (@api) ->
-    @connect()
+class exports.Database
+  constructor: (cfg) ->
+    if typeof cfg == 'string'
+      @api = cfg
+      @request 'Firebase', false, (url) ->
+        @firebase = new Firebase url
+    else
+      @api = cfg.server
+      @firebase = new Firebase cfg.firebase
     @cache = true
 
-  collection: (name) ->
-    new mongofb.Collection @, name
+  connect: (next) ->
+    @request 'Firebase', false, (url) =>
+      @firebase = new Firebase url
+      next()
 
-  connect: ->
-    url = @request 'Firebase'
-    @firebase = new Firebase url
+  collection: (name) ->
+    new exports.Collection @, name
 
   get: (path) ->
     path = path.split /[\/\.]/g
@@ -67,35 +112,30 @@ class mongofb.Database
     collection.get path[1..].join '/'
 
   request: ->
+    json = true
+    resource = ''
+    next = null
+    params = {}
+
     for arg in arguments
       switch typeof arg
+        when 'boolean' then json = arg
         when 'string' then resource = arg
         when 'function' then next = arg
         when 'object' then params = arg
 
-    result = null
-    if next
-      success = (data) -> next null, data
-      error = (jqXHR, textStatus, err) -> next err
-      async = true
-    else
-      success = (data) -> result = data
-      error = -> result = null
-      async = false
-    $.ajax {
-      url: "#{@api}/#{resource}"
+    url = "#{@api}/#{resource}"
+    return fetch {
       cache: @cache
-      type: 'GET'
-      data: params
-      success: success
-      error: error
-      async: async
+      url: url
+      resource: resource
+      next: next
+      params: params
     }
-    return result
 
-class mongofb.Collection
+class exports.Collection
   constructor: (@database, @name) ->
-    @ref = new mongofb.CollectionRef @
+    @ref = new exports.CollectionRef @
 
   get: (path) ->
     path = path.split /[\/\.]/g
@@ -117,39 +157,40 @@ class mongofb.Collection
         ref.setPriority priority if priority
         @database.request "sync/#{@name}/#{id}", (err, doc) =>
           return next?(err) if err
-          next?(null, new mongofb.Document @, doc)
+          next?(null, new exports.Document @, doc)
 
   find: (query, next) ->
     if next
       @database.request "#{@name}/find", query, (err, docs) =>
         return next err if err
-        docs = (new mongofb.Document @, doc for doc in docs)
+        docs = (new exports.Document @, doc for doc in docs)
         next null, docs
     else
       docs = @database.request "#{@name}/find", query
-      return (new mongofb.Document @, doc for doc in docs)
+      docs ?= []
+      return (new exports.Document @, doc for doc in docs)
 
   findById: (id, next) ->
     if next
       @database.request "#{@name}/#{id}", (err, doc) =>
         return next err if err
         return next null, null if not doc
-        next null, new mongofb.Document @, doc
+        next null, new exports.Document @, doc
     else
       doc = @database.request "#{@name}/#{id}"
       return null if not doc
-      return new mongofb.Document @, doc
+      return new exports.Document @, doc
 
   findOne: (query, next) ->
     if next
       @database.request "#{@name}/findOne", query, (err, doc) =>
         return next err if err
         return next null, null if not doc
-        next null, new mongofb.Document @, doc
+        next null, new exports.Document @, doc
     else
       doc = @database.request "#{@name}/findOne", query
       return null if not doc
-      return new mongofb.Document @, doc
+      return new exports.Document @, doc
 
   list: (priority, limit=1) ->
     @ref.endAt priority
@@ -164,7 +205,7 @@ class mongofb.Collection
         return next?(err) if err
         next?(null)
 
-class mongofb.CollectionRef extends mongofb.EventEmitter
+class exports.CollectionRef extends exports.EventEmitter
   constructor: (@collection) ->
     @database = @collection.database
     @ref = @database.firebase.child @collection.name
@@ -200,11 +241,11 @@ class mongofb.CollectionRef extends mongofb.EventEmitter
     if @events.remove?.length == 0
       @ref.off 'child_removed'
 
-class mongofb.Document
+class exports.Document
   constructor: (@collection, @data) ->
     @database = @collection.database
     @key = "#{@collection.name}/#{@data._id}"
-    @ref = new mongofb.DocumentRef @
+    @ref = new exports.DocumentRef @
 
   emit: (event, args...) ->
     @ref.emit event, args...
@@ -233,7 +274,7 @@ class mongofb.Document
   val: ->
     @ref.val()
 
-class mongofb.DocumentRef extends mongofb.EventEmitter
+class exports.DocumentRef extends exports.EventEmitter
   constructor: (@document, @path='') ->
     super()
     @collection = @document.collection
@@ -250,11 +291,11 @@ class mongofb.DocumentRef extends mongofb.EventEmitter
 
   get: (path) ->
     temp = @path.slice 0
-    while mongofb.utils.startsWith path, '..'
+    while exports.utils.startsWith path, '..'
       temp.pop()
       path = path[2..]
-      path = path[1..] if mongofb.utils.startsWith path, '/'
-    new mongofb.DocumentRef @document, "#{temp.join '/'}/#{path}"
+      path = path[1..] if exports.utils.startsWith path, '/'
+    new exports.DocumentRef @document, "#{temp.join '/'}/#{path}"
 
   name: ->
     if @path.length == 0 then @data._id else @path[@path.length-1]
@@ -268,7 +309,7 @@ class mongofb.DocumentRef extends mongofb.EventEmitter
       @emit 'value', @data
       @ref.off 'value'
       @ref.on 'value', (snapshot) =>
-        return if mongofb.utils.isEquals @data, snapshot.val()
+        return if exports.utils.isEquals @data, snapshot.val()
         @updateData snapshot.val()
         @emit 'update', @data
         @emit 'value', @data
@@ -280,7 +321,7 @@ class mongofb.DocumentRef extends mongofb.EventEmitter
       @ref.off 'value'
 
   parent: ->
-    new mongofb.DocumentRef @document, @path[0...@path.length-1]
+    new exports.DocumentRef @document, @path[0...@path.length-1]
 
   set: (value, next) ->
     ref = @database.firebase.child @key
@@ -305,9 +346,9 @@ class mongofb.DocumentRef extends mongofb.EventEmitter
 
   val: ->
     if typeof @data == 'object'
-      $.extend true, {}, @data
+      extend {}, @data
     else if Array.isArray @data
-      $.extend true, [], @data
+      extend [], @data
     else
       @data
 
