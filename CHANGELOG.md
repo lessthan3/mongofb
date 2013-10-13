@@ -1,3 +1,7 @@
+**v0.3.1** (2013-10-12)
+
+ - typo "firebase", not "Firebase"
+
 **v0.3.0** (2013-10-12)
 
  - make javascript sdk accessible server-side

@@ -39,7 +39,7 @@ else
   exports = module.exports = {}
   extend = require 'node.extend'
   request = require 'request'
-  Firebase = require 'Firebase'
+  Firebase = require 'firebase'
   fetch = (args) ->
     request {
       url: args.url
