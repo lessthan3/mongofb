@@ -80,13 +80,24 @@ exports.server = (cfg) ->
       # helpers
       auth = (req, res, next) ->
         if req.query.token
-          ref = new Firebase cfg.firebase.url
-          ref.auth req.query.token, (err, user) ->
-            delete req.query.token
-            req.user = user
-            next()
-        else
-          next()
+          token = req.query.token
+
+          # parse token
+          TOKEN_SEP = '.'
+          [encoded_header, encoded_claims, original_sig] = token.split TOKEN_SEP
+          claims = JSON.parse new Buffer(encoded_claims, 'base64').toString()
+          header = JSON.parse new Buffer(encoded_header, 'base64').toString()
+
+          # verify signature
+          secure_bits = encoded_header + TOKEN_SEP + encoded_claims
+          hmac = crypto.createHmac 'sha256', cfg.firebase.secret
+          hmac.update secure_bits
+          hash_bytes = hmac.digest 'binary'
+          sig = FirebaseTokenGenerator::noPadWebsafeBase64Encode_ hash_bytes, 'binary'
+          if sig == original_sig
+            req.user = claims.d
+          delete req.query.token
+        next()
       
       _cache = new LRU cfg.cache
       cache = (fn) ->

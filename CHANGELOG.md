@@ -1,3 +1,7 @@
+**v0.3.2** (2013-10-22)
+
+ - manually parse token instead of using auth
+
 **v0.3.1** (2013-10-12)
 
  - typo "firebase", not "Firebase"
