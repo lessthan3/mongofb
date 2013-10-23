@@ -1,4 +1,5 @@
 # dependencies
+crypto = require 'crypto'
 express = require 'express'
 Firebase = require 'firebase'
 FirebaseTokenGenerator = require 'firebase-token-generator'
