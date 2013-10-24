@@ -84,7 +84,8 @@ class exports.EventEmitter
 
   off: (event, callback=null) ->
     @events[event] ?= []
-    @events[event].filter (fn) -> callback isnt null and fn isnt callback
+    @events[event] = @events[event].filter (fn) ->
+      callback isnt null and fn isnt callback
 
 class exports.Database
   constructor: (cfg) ->
@@ -262,6 +263,9 @@ class exports.Document
   off: (event, callback) ->
     @ref.off event, callback
 
+  refresh: (next) ->
+    @ref.refresh next
+
   remove: (next) ->
     @collection.remove @data._id, next
 
@@ -317,11 +321,16 @@ class exports.DocumentRef extends exports.EventEmitter
   off: (event, callback=null) ->
     super event, callback
 
-    if @events.update?.length == 0 and @events.value?.length == 0
+    unless @events.update?.length and @events.value?.length
       @ref.off 'value'
 
   parent: ->
     new exports.DocumentRef @document, @path[0...@path.length-1]
+
+  refresh: (next) ->
+    @ref.once 'value', (snapshot) =>
+      @updateData snapshot.val()
+      next?()
 
   set: (value, next) ->
     ref = @database.firebase.child @key
@@ -333,7 +342,11 @@ class exports.DocumentRef extends exports.EventEmitter
         next?(null)
 
   updateData: (data) ->
+
+    # update DocumentRef data
     @data = data
+
+    # update Document data
     if @path.length == 0
       @document.data = data
     else

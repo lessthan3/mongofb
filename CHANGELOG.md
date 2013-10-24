@@ -1,3 +1,9 @@
+**v0.3.4** (2013-10-23)
+
+ - fix EventEmitter.off to remove if the callback matched
+ - fix actually removing the firebase listener if no events left to listen to
+ - add a refresh function to force getting up-to-date data
+
 **v0.3.3** (2013-10-22)
 
  - require crypto
