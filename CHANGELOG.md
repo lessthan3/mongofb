@@ -1,3 +1,7 @@
+**v0.3.5** (2013-10-26)
+
+ - expose fb and db
+
 **v0.3.4** (2013-10-23)
 
  - fix EventEmitter.off to remove if the callback matched

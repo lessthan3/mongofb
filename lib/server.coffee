@@ -41,19 +41,22 @@ exports.server = (cfg) ->
 
 
   # variables
+  exports.db = null
+  exports.fb = null
   db = null
   fb = null
 
 
   # connect to firebase and mongodb
   connect = (next) ->
-    return next() if db and fb
+    return next?() if db and fb
     m = cfg.mongodb
     url = "mongodb://#{m.user}:#{m.pass}@#{m.host}:#{m.port}/#{m.db}"
     url = url.replace ':@', '@'
     mongodb.MongoClient.connect url, m.options, (err, database) ->
-      return next err if err
+      return next?(err) if err
       db = database
+      exports.db = db
       fb = new Firebase cfg.firebase.url
       if cfg.firebase.secret
         token_generator = new FirebaseTokenGenerator cfg.firebase.secret
@@ -62,10 +65,11 @@ exports.server = (cfg) ->
           admin: true
         }
         fb.auth token, (err) ->
-          next err
+          next?(err)
+          exports.fb = fb
       else
-        next()
-
+        next?()
+  connect()
 
   # middleware
   (req, res, next) ->
