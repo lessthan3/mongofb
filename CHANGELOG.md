@@ -1,3 +1,7 @@
+**v0.3.6** (2013-10-26)
+
+ - cache avoid for ObjectId and sync on inserts
+
 **v0.3.5** (2013-10-26)
 
  - expose fb and db
