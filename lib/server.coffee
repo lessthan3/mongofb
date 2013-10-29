@@ -213,7 +213,7 @@ exports.server = (cfg) ->
 
           # options
           qry.limit ?= 1000
-          qry.limit = Math.max qry.limit, 1000
+          qry.limit = Math.min qry.limit, 1000
           opt = {limit: qry.limit}
           delete qry.limit
 

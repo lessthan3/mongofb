@@ -1,3 +1,8 @@
+**v0.3.7** (2013-10-29)
+
+ - pass json to fetch (needed for server-side mongofb client)
+ - set correct limit parameter for finds
+
 **v0.3.6** (2013-10-26)
 
  - cache avoid for ObjectId and sync on inserts

@@ -128,10 +128,11 @@ class exports.Database
     url = "#{@api}/#{resource}"
     return fetch {
       cache: @cache
-      url: url
-      resource: resource
+      json: json
       next: next
       params: params
+      resource: resource
+      url: url
     }
 
 class exports.Collection
