@@ -167,12 +167,7 @@ exports.server = (cfg) ->
 
       # ObjectID for creating documents
       router.route 'GET', "#{cfg.root}/ObjectID", (req, res, next) ->
-        # TODO: generator ObjectIDs in a better way
-        tmp = db.collection 'tmp'
-        tmp.insert {}, (err, docs) ->
-          id = docs[0]._id
-          tmp.remove {_id: id}, (err) ->
-            res.send id.toString()
+        res.send mongodb.ObjectID().toString()
 
 
       # sync data from firebase
@@ -189,7 +184,10 @@ exports.server = (cfg) ->
         ref = fb.child "#{req.params.collection}/#{req.params.id}"
         ref.once 'value', (snapshot) ->
           collection = db.collection req.params.collection
-          qry = {_id: new mongodb.ObjectID req.params.id}
+          try
+            qry = {_id: new mongodb.ObjectID req.params.id}
+          catch err
+            return next err
           doc = snapshot.val()
           if doc
             doc._id = qry._id
@@ -243,7 +241,10 @@ exports.server = (cfg) ->
       router.route 'GET', url, auth, (req, res, next) ->
         cache (next) ->
           target = unescape(req.params[1]).replace /\//g, '.' if req.params[1]
-          qry = {_id: new mongodb.ObjectID req.params.id}
+          try
+            qry = {_id: new mongodb.ObjectID req.params.id}
+          catch err
+            return next err
           prj = {}
           prj[target] = 1 if target
 

@@ -1,3 +1,8 @@
+**v0.3.8** (2013-10-30)
+
+ - simpler way to generate ObjectIDs
+ - handle exceptions for bad ObjectIDs to sync and findByID
+
 **v0.3.7** (2013-10-29)
 
  - pass json to fetch (needed for server-side mongofb client)
