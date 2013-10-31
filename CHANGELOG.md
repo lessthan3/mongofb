@@ -1,3 +1,8 @@
+**v0.3.9** (2013-10-30)
+
+ - dont set firebase created timestamp on new docs (use custom or ObjectID)
+ - check for Array before object when getting val()
+
 **v0.3.8** (2013-10-30)
 
  - simpler way to generate ObjectIDs

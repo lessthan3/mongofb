@@ -152,7 +152,6 @@ class exports.Collection
     @database.request 'ObjectID', {_: Date.now()}, (err, id) =>
       return next?(err) if err
       doc._id = id
-      doc.created = Firebase.ServerValue.TIMESTAMP
       ref = @database.firebase.child "#{@name}/#{id}"
       ref.set doc, (err) =>
         return next?(err) if err
@@ -359,10 +358,10 @@ class exports.DocumentRef extends exports.EventEmitter
       target[key] = data
 
   val: ->
-    if typeof @data == 'object'
-      extend {}, @data
-    else if Array.isArray @data
+    if Array.isArray @data
       extend [], @data
+    else if typeof @data == 'object'
+      extend {}, @data
     else
       @data
 
