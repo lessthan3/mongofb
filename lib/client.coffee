@@ -149,14 +149,18 @@ class exports.Collection
     if typeof priority == 'function'
       next = priority
       priority = null
-    @database.request 'ObjectID', {_: Date.now()}, (err, id) =>
+    @database.request 'ObjectID', {
+      _: "#{Date.now()}-#{Math.random()}"
+    }, (err, id) =>
       return next?(err) if err
       doc._id = id
       ref = @database.firebase.child "#{@name}/#{id}"
       ref.set doc, (err) =>
         return next?(err) if err
         ref.setPriority priority if priority
-        @database.request "sync/#{@name}/#{id}", {_: Date.now()}, (err, doc) =>
+        @database.request "sync/#{@name}/#{id}", {
+          _: Date.now()
+        }, (err, doc) =>
           return next?(err) if err
           next?(null, new exports.Document @, doc)
 

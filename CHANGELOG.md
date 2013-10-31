@@ -1,3 +1,7 @@
+**v0.3.10** (2013-10-30)
+
+ - more verbose cache bust for ObjectID (cant risk collisions here)
+
 **v0.3.9** (2013-10-30)
 
  - dont set firebase created timestamp on new docs (use custom or ObjectID)
