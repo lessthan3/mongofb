@@ -18,7 +18,7 @@ if typeof window != 'undefined'
     result = null
     if args.next
       success = (data) -> args.next null, data
-      error = (jqXHR, textStatus, err) -> args.next err
+      error = (jqXHR, textStatus, err) -> args.next jqXHR, null
       async = true
     else
       success = (data) -> result = data

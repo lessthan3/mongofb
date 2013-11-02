@@ -1,3 +1,7 @@
+**v0.3.11** (2013-11-02)
+
+ - for browser-side errors, return jqXHR object instead of error string
+
 **v0.3.10** (2013-10-30)
 
  - more verbose cache bust for ObjectID (cant risk collisions here)
