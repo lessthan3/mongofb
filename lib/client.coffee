@@ -46,8 +46,12 @@ else
       qs: args.params
       method: 'GET'
     }, (err, resp, body) =>
-      if args.json then body = JSON.parse body
-      args.next err, body
+      if resp.statusCode == 200
+        if args.json
+          body = JSON.parse body
+        args.next err, body
+      else
+        args.next err, null
 
 exports.utils =
   isEquals: (a, b) ->
@@ -98,11 +102,6 @@ class exports.Database
       @firebase = new Firebase cfg.firebase
     @cache = true
 
-  connect: (next) ->
-    @request 'Firebase', false, (url) =>
-      @firebase = new Firebase url
-      next()
-
   collection: (name) ->
     new exports.Collection @, name
 
@@ -126,6 +125,7 @@ class exports.Database
         when 'object' then params = arg
 
     url = "#{@api}/#{resource}"
+    params.token = @token if @token
     return fetch {
       cache: @cache
       json: json
@@ -135,6 +135,9 @@ class exports.Database
       url: url
     }
 
+  setToken: (token) ->
+    @token = token
+ 
 class exports.Collection
   constructor: (@database, @name) ->
     @ref = new exports.CollectionRef @

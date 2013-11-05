@@ -1,3 +1,10 @@
+**v0.3.12** (2013-11-04)
+
+ - setToken function for client
+ - check for statusCode on server-side client.coffee fetch
+ - check for admin property in authentication
+ - add mongofb reference to incoming requests
+
 **v0.3.11** (2013-11-02)
 
  - for browser-side errors, return jqXHR object instead of error string

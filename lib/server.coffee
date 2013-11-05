@@ -56,6 +56,7 @@ exports.server = (cfg) ->
     mongodb.MongoClient.connect url, m.options, (err, database) ->
       return next?(err) if err
       db = database
+      db.ObjectID = mongodb.ObjectID
       exports.db = db
       fb = new Firebase cfg.firebase.url
       if cfg.firebase.secret
@@ -65,6 +66,7 @@ exports.server = (cfg) ->
           admin: true
         }
         fb.auth token, (err) ->
+          fb.admin_token = token
           next?(err)
           exports.fb = fb
       else
@@ -80,12 +82,16 @@ exports.server = (cfg) ->
       # databases
       req.db = db
       req.fb = fb
-
+      req.mongofb = new exports.client.Database {
+        server: "http://#{req.get('host')}#{cfg.root}"
+        firebase: cfg.firebase.url
+      }
 
       # helpers
       auth = (req, res, next) ->
         if req.query.token
           token = req.query.token
+          delete req.query.token
 
           # parse token
           TOKEN_SEP = '.'
@@ -101,7 +107,7 @@ exports.server = (cfg) ->
           sig = FirebaseTokenGenerator::noPadWebsafeBase64Encode_ hash_bytes, 'binary'
           if sig == original_sig
             req.user = claims.d
-          delete req.query.token
+            req.admin = claims.admin
         next()
       
       _cache = new LRU cfg.cache
@@ -227,6 +233,8 @@ exports.server = (cfg) ->
       url = "#{cfg.root}/:collection/findOne"
       router.route 'GET', url, auth, (req, res, next) ->
         cache (next) ->
+          if req.params._id
+            req.params._id = new mongodb.ObjectID req.params._id
           qry = hook 'before', 'find', req.query
           collection = db.collection req.params.collection
           collection.findOne qry, (err, doc) ->
