@@ -1,3 +1,8 @@
+**v0.3.14** (2013-11-22)
+
+ - add Database.auth
+ - fix server-side ObjectID fetching (response is not json)
+
 **v0.3.13** (2013-11-22)
 
  - add request dependency

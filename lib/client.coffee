@@ -135,6 +135,11 @@ class exports.Database
       url: url
     }
 
+  auth: (token, next) ->
+    @firebase.auth token, =>
+      @token = token
+      next()
+
   setToken: (token) ->
     @token = token
  
@@ -152,7 +157,7 @@ class exports.Collection
     if typeof priority == 'function'
       next = priority
       priority = null
-    @database.request 'ObjectID', {
+    @database.request 'ObjectID', false, {
       _: "#{Date.now()}-#{Math.random()}"
     }, (err, id) =>
       return next?(err) if err
