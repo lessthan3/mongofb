@@ -1,3 +1,7 @@
+**v0.3.13** (2013-11-22)
+
+ - add request dependency
+
 **v0.3.12** (2013-11-04)
 
  - setToken function for client
