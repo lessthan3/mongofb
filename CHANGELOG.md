@@ -1,3 +1,7 @@
+**v0.4.1** (2013-12-27)
+
+ - emit object clone for events
+
 **v0.3.14** (2013-11-22)
 
  - add Database.auth

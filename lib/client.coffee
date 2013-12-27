@@ -322,13 +322,13 @@ class exports.DocumentRef extends exports.EventEmitter
     super event, callback
 
     if @events.update?.length > 0 or @events.value?.length > 0
-      @emit 'value', @data
+      @emit 'value', @val()
       @ref.off 'value'
       @ref.on 'value', (snapshot) =>
         return if exports.utils.isEquals @data, snapshot.val()
         @updateData snapshot.val()
-        @emit 'update', @data
-        @emit 'value', @data
+        @emit 'update', @val()
+        @emit 'value', @val()
 
   off: (event, callback=null) ->
     super event, callback
