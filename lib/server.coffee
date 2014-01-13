@@ -10,6 +10,7 @@ wrap = require 'asset-wrap'
 
 
 # exports
+exports.ObjectID = mongodb.ObjectID
 exports.client = require './client'
 exports.server = (cfg) ->
 
@@ -132,12 +133,13 @@ exports.server = (cfg) ->
       contentType = (type) ->
         res.set 'Content-Type', type
 
-      hook = (time, method, arg) ->
+      hook = (time, method, args) ->
         fn = cfg.hooks?[req.params.collection]?[time]?[method]
         if fn
-          fn.apply req, [arg]
+          args = [args] unless Array.isArray args
+          fn.apply req, args
         else
-          arg
+          args
   
 
       # routes
@@ -177,6 +179,7 @@ exports.server = (cfg) ->
 
 
       # sync data from firebase
+      # NOTE: requires _id to be an ObjectID
       # db.collection.update
       # db.collection.insert
       # db.collection.remove
@@ -184,9 +187,6 @@ exports.server = (cfg) ->
       # match firebase urls. the key in firebase is /:collection/:id
       url = "#{cfg.root}/sync/:collection/:id*"
       router.route 'GET', url, auth, (req, res, next) ->
-        target = unescape(req.params[1]) if req.params[1]
-        # TODO: if target, only update that part of the document
-
         ref = fb.child "#{req.params.collection}/#{req.params.id}"
         ref.once 'value', (snapshot) ->
           collection = db.collection req.params.collection
@@ -200,7 +200,7 @@ exports.server = (cfg) ->
             opt = {safe: true, upsert: true}
             collection.update qry, doc, opt, (err) ->
               return res.send 500, err if err
-              doc = hook 'after', 'find', doc
+              hook 'after', 'find', doc
               res.send doc
           else
             collection.remove qry, (err) ->
@@ -212,57 +212,95 @@ exports.server = (cfg) ->
       url = "#{cfg.root}/:collection/find"
       router.route 'GET', url, auth, (req, res, next) ->
         cache (next) ->
-          # query
-          qry = hook 'before', 'find', req.query
 
-          # options
-          qry.limit ?= 1000
-          qry.limit = Math.min qry.limit, 1000
-          opt = {limit: qry.limit}
-          delete qry.limit
+          # special options (mainly for use by findByID and findOne)
+          __single = req.query.__single or false
+          __field = null
+          if req.query.__field
+            __field = unescape(req.query.__field).replace(/\//g, '.')
+          delete req.query.__single
+          delete req.query.__field
+
+          # defaults
+          criteria = {}
+          fields = {}
+          options = {}
+
+          # use JSON encoded parameters
+          if req.query.criteria
+            criteria = JSON.parse req.query.criteria
+
+            if req.query.fields
+              fields = JSON.parse req.query.fields
+
+            if req.query.limit
+              options.limit = req.query.limit
+
+            if req.query.skip
+              options.skip = req.query.skip
+
+            if req.query.sort
+              options.sort = JSON.parse req.query.sort
+
+          # simple http queries
+          else
+            if req.query.fields
+              for field in req.query.fields.split ','
+                fields[field] = 1
+              delete req.query.fields
+
+            if req.query.limit
+              options.limit = req.query.limit
+              delete req.query.limit
+
+            if req.query.skip
+              options.skip = req.query.skip
+              delete req.query.skip
+
+            if req.query.sort
+              [sort_field, sort_dir] = req.query.sort.split ','
+              options.sort = [[sort_field, sort_dir or 'asc']]
+              delete req.query.sort
+
+            criteria = req.query
+
+          # hooks
+          hook 'before', 'find', [criteria, fields, options]
 
           # run query
           collection = db.collection req.params.collection
-          collection.find(qry, opt).toArray (err, docs) ->
+          collection.find(criteria, fields, options).toArray (err, docs) ->
             return res.send 500, err if err
-            docs = (hook('after', 'find', doc) for doc in docs)
+            hook('after', 'find', doc) for doc in docs
+            
+            if __field
+              fn = (doc) ->
+                doc = doc?[key] for key in __field.split '.'
+                return doc
+              docs = (fn doc for doc in docs)
+            if __single
+              docs = docs[0]
             next docs
 
 
       # db.collection.findOne
       url = "#{cfg.root}/:collection/findOne"
       router.route 'GET', url, auth, (req, res, next) ->
-        cache (next) ->
-          if req.params._id
-            req.params._id = new mongodb.ObjectID req.params._id
-          qry = hook 'before', 'find', req.query
-          collection = db.collection req.params.collection
-          collection.findOne qry, (err, doc) ->
-            return res.send 500, err if err
-            return res.send 404 if not doc
-            doc = hook 'after', 'find', doc
-            next doc
+        req.url = "#{cfg.root}/#{req.params.collection}/find"
+        req.query.limit = 1
+        req.query.__single = true
+        router._dispatch req, res, next
 
 
       # db.collection.findById
       url = "#{cfg.root}/:collection/:id*"
       router.route 'GET', url, auth, (req, res, next) ->
-        cache (next) ->
-          target = unescape(req.params[1]).replace /\//g, '.' if req.params[1]
-          try
-            qry = {_id: new mongodb.ObjectID req.params.id}
-          catch err
-            return next err
-          prj = {}
-          prj[target] = 1 if target
-
-          collection = db.collection req.params.collection
-          collection.findOne qry, prj, (err, doc) ->
-            return res.send 500, err if err
-            return res.send 404 if not doc
-            doc = hook 'after', 'find', doc
-            doc = doc?[key] for key in target.split '.' if target
-            next doc
+        req.url = "#{cfg.root}/#{req.params.collection}/find"
+        req.query.limit = 1
+        req.query._id = req.params.id
+        req.query.__single = true
+        req.query.__field = req.params[1] if req.params[1]
+        router._dispatch req, res, next
 
 
       # execute routes
