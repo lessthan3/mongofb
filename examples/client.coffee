@@ -1,4 +1,7 @@
-window.db = new mongofb.Database '/api/v2'
+window.db = new mongofb.Database {
+  server: '/db/1.0'
+  firebase: 'https://vn42xl9zsez.firebaseio-demo.com'
+}
 window.cookies = db.collection 'cookies'
 
 cookies.insert {type: 'chocolate'}, (err, cookie) ->
@@ -12,5 +15,5 @@ cookies.insert {type: 'chocolate'}, (err, cookie) ->
   ref.on 'update', (val) ->
     console.log 'cookie.type updated to', val
 
-  ref.set 'peanut butter'
+  ref.set "peanut butter: #{Math.random()}"
 

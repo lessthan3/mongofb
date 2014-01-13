@@ -314,7 +314,10 @@ class exports.DocumentRef extends exports.EventEmitter
     new exports.DocumentRef @document, "#{temp.join '/'}/#{path}"
 
   name: ->
-    if @path.length == 0 then @data._id else @path[@path.length-1]
+    if @path.length == 1 and @path[0] == ''
+      @data._id
+    else
+      @path[@path.length-1]
 
   # value: emit now and when updated
   # update: emit only when updated
@@ -325,10 +328,7 @@ class exports.DocumentRef extends exports.EventEmitter
       @emit 'value', @val()
       @ref.off 'value'
       @ref.on 'value', (snapshot) =>
-        return if exports.utils.isEquals @data, snapshot.val()
         @updateData snapshot.val()
-        @emit 'update', @val()
-        @emit 'value', @val()
 
   off: (event, callback=null) ->
     super event, callback
@@ -354,12 +354,15 @@ class exports.DocumentRef extends exports.EventEmitter
         next?(null)
 
   updateData: (data) ->
+    return if exports.utils.isEquals @data, data
 
     # update DocumentRef data
     @data = data
+    @emit 'update', @val()
+    @emit 'value', @val()
 
     # update Document data
-    if @path.length == 0
+    if @path.length == 1 and @path[0] == ''
       @document.data = data
     else
       [keys..., key] = @path
@@ -367,7 +370,11 @@ class exports.DocumentRef extends exports.EventEmitter
       for k in keys
         target[k] ?= {}
         target = target[k]
+
+      return if exports.utils.isEquals target[key], data
       target[key] = data
+      @document.emit 'update', @document.val()
+      @document.emit 'value', @document.val()
 
   val: ->
     if Array.isArray @data

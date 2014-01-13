@@ -1,3 +1,9 @@
+**v0.5.2** (2013-01-13)
+
+ - fix example for v0.4.x+
+ - fix duplicate update bug
+ - add .gitignore
+
 **v0.5.1** (2014-01-13)
 
  - add ObjectID to exports
