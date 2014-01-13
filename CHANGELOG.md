@@ -1,3 +1,15 @@
+**v0.5.1** (2014-01-13)
+
+ - add ObjectID to exports
+ - allow multiple arguments to hooks
+ - hooks edit object instead of returning new
+ - no max limit (this should be set through a hook)
+ - no default limit (this should be set through a hook)
+ - refactor findOne and findById to route through find
+ - allow json arguments for criteria and fields
+ - add field filtering
+ - add sort and skip
+
 **v0.4.1** (2013-12-27)
 
  - emit object clone for events
