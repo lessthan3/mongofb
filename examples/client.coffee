@@ -4,6 +4,8 @@ window.db = new mongofb.Database {
 }
 window.cookies = db.collection 'cookies'
 
+db.cache = false
+
 cookies.insert {type: 'chocolate'}, (err, cookie) ->
   throw err if err
   window.cookie = cookie
@@ -11,7 +13,7 @@ cookies.insert {type: 'chocolate'}, (err, cookie) ->
   cookie.on 'update', (val) ->
     console.log 'cookie updated to', val
 
-  ref = cookie.get 'type'
+  window.ref = cookie.get 'type'
   ref.on 'update', (val) ->
     console.log 'cookie.type updated to', val
 

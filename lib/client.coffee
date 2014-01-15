@@ -101,6 +101,7 @@ class exports.Database
       @api = cfg.server
       @firebase = new Firebase cfg.firebase
     @cache = true
+    @safe_writes = true
 
   collection: (name) ->
     new exports.Collection @, name
@@ -168,42 +169,94 @@ class exports.Collection
         ref.setPriority priority if priority
         @database.request "sync/#{@name}/#{id}", {
           _: Date.now()
-        }, (err, doc) =>
+        }, (err, data) =>
           return next?(err) if err
-          next?(null, new exports.Document @, doc)
+          next?(null, new exports.Document @, data)
 
-  find: (query, next) ->
-    if next
-      @database.request "#{@name}/find", query, (err, docs) =>
+  # find()
+  # find(criteria)
+  # find(criteria, fields)
+  # find(criteria, options)
+  # find(criteria, fields, options)
+  #
+  # find(next)
+  # find(criteria, next)
+  # find(criteria, fields, next)
+  # find(criteria, options, next)
+  # find(criteria, fields, options, next)
+  find: (criteria=null, fields=null, options=null, next=null) ->
+
+    # query
+    args = Array.prototype.slice.call arguments, 0
+    has_callback = typeof args[args.length - 1] is 'function'
+    next = args[args.length - 1] if has_callback
+    criteria = args[0] if typeof args[0] is 'object'
+    fields = args[1] if typeof args[1] is 'object'
+    options = args[2] if typeof args[2] is 'object'
+    if fields and not options and (fields.limit or fields.skip or fields.sort)
+      options = fields
+      fields = {}
+    query = {criteria, fields, options}
+
+    # helpers
+    prepare = (q) -> o = {}; o[k] = JSON.stringify v if v for k, v of q; o
+ 
+    # execute query
+    if has_callback
+      @database.request "#{@name}/find", prepare(query), (err, datas) =>
         return next err if err
-        docs = (new exports.Document @, doc for doc in docs)
-        next null, docs
+        next null, (new exports.Document @, data, query for data in datas)
     else
-      docs = @database.request "#{@name}/find", query
-      docs ?= []
-      return (new exports.Document @, doc for doc in docs)
+      datas = @database.request("#{@name}/find", prepare(query)) or []
+      return (new exports.Document @, data, query for data in datas)
 
   findById: (id, next) ->
     if next
-      @database.request "#{@name}/#{id}", (err, doc) =>
+      @database.request "#{@name}/#{id}", (err, data) =>
         return next err if err
-        return next null, null if not doc
-        next null, new exports.Document @, doc
+        return next null, null if not data
+        next null, new exports.Document @, data
     else
-      doc = @database.request "#{@name}/#{id}"
-      return null if not doc
-      return new exports.Document @, doc
+      data = @database.request "#{@name}/#{id}"
+      return null unless data
+      return new exports.Document @, data
 
-  findOne: (query, next) ->
-    if next
-      @database.request "#{@name}/findOne", query, (err, doc) =>
+  # findOne()
+  # findOne(criteria)
+  # findOne(criteria, fields)
+  # findOne(criteria, fields, options)
+  #
+  # findOne(next)
+  # findOne(criteria, next)
+  # findOne(criteria, fields, next)
+  # findOne(criteria, fields, options, next)
+  findOne: (criteria=null, fields=null, options=null, next=null) ->
+
+    # query
+    args = Array.prototype.slice.call arguments, 0
+    has_callback = typeof args[args.length - 1] is 'function'
+    next = args[args.length - 1] if has_callback
+    criteria = args[0] if typeof args[0] is 'object'
+    fields = args[1] if typeof args[1] is 'object'
+    options = args[2] if typeof args[2] is 'object'
+    if fields and not options and (fields.limit or fields.skip or fields.sort)
+      options = fields
+      fields = {}
+    query = {criteria, fields, options}
+    
+    # helpers
+    prepare = (q) -> o = {}; o[k] = JSON.stringify v for k, v of q when v; o
+        
+    # execute query
+    if has_callback
+      @database.request "#{@name}/findOne", prepare(query), (err, data) =>
         return next err if err
-        return next null, null if not doc
-        next null, new exports.Document @, doc
+        return next null, null if not data
+        next null, new exports.Document @, data, query
     else
-      doc = @database.request "#{@name}/findOne", query
-      return null if not doc
-      return new exports.Document @, doc
+      data = @database.request "#{@name}/findOne", prepare(query)
+      return null if not data
+      return new exports.Document @, data, query
 
   list: (priority, limit=1) ->
     @ref.endAt priority
@@ -214,7 +267,7 @@ class exports.Collection
     ref = @database.firebase.child "#{@name}/#{_id}"
     ref.set null, (err) =>
       return next?(err) if err
-      @database.request "sync/#{@name}/#{_id}", (err, doc) =>
+      @database.request "sync/#{@name}/#{_id}", (err, data) =>
         return next?(err) if err
         next?(null)
 
@@ -255,9 +308,10 @@ class exports.CollectionRef extends exports.EventEmitter
       @ref.off 'child_removed'
 
 class exports.Document
-  constructor: (@collection, @data) ->
+  constructor: (@collection, @data, @query) ->
     @database = @collection.database
     @key = "#{@collection.name}/#{@data._id}"
+    @query ?= {criteria: {}, fields: {}, options: {}}
     @ref = new exports.DocumentRef @
 
   emit: (event, args...) ->
@@ -345,10 +399,21 @@ class exports.DocumentRef extends exports.EventEmitter
       next?()
 
   set: (value, next) ->
+
+    # if specific fields were queried for, only allow those to be updated
+    if @database.safe_writes
+      allow = true
+      if @document.query.fields
+        allow = false
+        for k, v of @document.query.fields
+          dst = "#{@document.key}/#{k.replace /\./g, '/'}"
+          allow = allow or @key.indexOf(dst) is 0
+      return next?('cannot set a field that was not queried for') unless allow
+
     ref = @database.firebase.child @key
     ref.set value, (err) =>
       return next?(err) if err
-      @database.request "sync/#{@key}", (err, doc) =>
+      @database.request "sync/#{@key}", (err, data) =>
         return next?(err) if err
         @updateData value
         next?(null)

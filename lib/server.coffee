@@ -233,14 +233,8 @@ exports.server = (cfg) ->
             if req.query.fields
               fields = JSON.parse req.query.fields
 
-            if req.query.limit
-              options.limit = req.query.limit
-
-            if req.query.skip
-              options.skip = req.query.skip
-
-            if req.query.sort
-              options.sort = JSON.parse req.query.sort
+            if req.query.options
+              options = JSON.parse req.query.options
 
           # simple http queries
           else
@@ -264,6 +258,8 @@ exports.server = (cfg) ->
 
             criteria = req.query
 
+          options.limit = 1 if __single
+
           # hooks
           hook 'before', 'find', [criteria, fields, options]
 
@@ -274,12 +270,9 @@ exports.server = (cfg) ->
             hook('after', 'find', doc) for doc in docs
             
             if __field
-              fn = (doc) ->
-                doc = doc?[key] for key in __field.split '.'
-                return doc
+              fn = (o) -> o = o?[key] for key in __field.split '.' ; o
               docs = (fn doc for doc in docs)
-            if __single
-              docs = docs[0]
+            docs = docs[0] if __single
             next docs
 
 
@@ -287,7 +280,6 @@ exports.server = (cfg) ->
       url = "#{cfg.root}/:collection/findOne"
       router.route 'GET', url, auth, (req, res, next) ->
         req.url = "#{cfg.root}/#{req.params.collection}/find"
-        req.query.limit = 1
         req.query.__single = true
         router._dispatch req, res, next
 

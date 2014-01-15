@@ -1,3 +1,8 @@
+**v0.5.3** (2013-01-15)
+
+ - add fields and options to javascript SDK
+ - only allow writes to queried fields
+
 **v0.5.2** (2013-01-13)
 
  - fix example for v0.4.x+
