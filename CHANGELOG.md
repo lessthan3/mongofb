@@ -1,3 +1,8 @@
+**v0.5.4** (2013-01-16)
+
+ - add a new find query object for token and nocache
+ - multiple ways to use find and findOne arguments
+
 **v0.5.3** (2013-01-15)
 
  - add fields and options to javascript SDK

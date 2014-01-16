@@ -71,6 +71,48 @@ exports.utils =
         else
           return false if a[k] != b[k]
     true
+  
+  # prepare query parameters for a find
+  prepareFind: (the_arguments) ->
+    args = Array.prototype.slice.call the_arguments, 0
+
+    # stringify json params
+    jsonify = (q) -> o = {}; o[k] = JSON.stringify v for k, v of q when v; o
+
+    # callback
+    has_callback = typeof args[args.length - 1] is 'function'
+    next = args[args.length - 1] if has_callback
+
+    # query objects
+    criteria = args[0] if typeof args[0] is 'object'
+    fields = args[1] if typeof args[1] is 'object'
+    options = args[2] if typeof args[2] is 'object'
+    special = args[3] if typeof args[3] is 'object'
+
+    # args[1] can be either fields or options or special
+    # args[2] can be either options or special
+    
+    # case: special was in args[2]
+    if options and not special and (options.token or options._)
+      [special, options] = [options, null]
+
+    # case: options was in args[1]
+    if fields and not options and (fields.limit or fields.skip or fields.sort)
+      [options, fields] = [fields, null]
+
+    # case: special was in args[1]
+    if fields and not special and (fields.token or fields._)
+      [special, fields] = [fields, null]
+
+    # format query objects and prepare to send
+    query = {criteria, fields, options}
+    params = jsonify query
+
+    params.token = special.token if special?.token
+    params._ = special._ if special?._
+
+    [query, params, next]
+
   startsWith: (str, target) ->
     str.slice(0, target.length) == target
 
@@ -186,28 +228,14 @@ class exports.Collection
   # find(criteria, fields, options, next)
   find: (criteria=null, fields=null, options=null, next=null) ->
 
-    # query
-    args = Array.prototype.slice.call arguments, 0
-    has_callback = typeof args[args.length - 1] is 'function'
-    next = args[args.length - 1] if has_callback
-    criteria = args[0] if typeof args[0] is 'object'
-    fields = args[1] if typeof args[1] is 'object'
-    options = args[2] if typeof args[2] is 'object'
-    if fields and not options and (fields.limit or fields.skip or fields.sort)
-      options = fields
-      fields = {}
-    query = {criteria, fields, options}
-
-    # helpers
-    prepare = (q) -> o = {}; o[k] = JSON.stringify v if v for k, v of q; o
+    [query, params, next] = exports.utils.prepareFind arguments
  
-    # execute query
-    if has_callback
-      @database.request "#{@name}/find", prepare(query), (err, datas) =>
+    if next
+      @database.request "#{@name}/find", params, (err, datas) =>
         return next err if err
         next null, (new exports.Document @, data, query for data in datas)
     else
-      datas = @database.request("#{@name}/find", prepare(query)) or []
+      datas = @database.request("#{@name}/find", params) or []
       return (new exports.Document @, data, query for data in datas)
 
   findById: (id, next) ->
@@ -232,29 +260,15 @@ class exports.Collection
   # findOne(criteria, fields, options, next)
   findOne: (criteria=null, fields=null, options=null, next=null) ->
 
-    # query
-    args = Array.prototype.slice.call arguments, 0
-    has_callback = typeof args[args.length - 1] is 'function'
-    next = args[args.length - 1] if has_callback
-    criteria = args[0] if typeof args[0] is 'object'
-    fields = args[1] if typeof args[1] is 'object'
-    options = args[2] if typeof args[2] is 'object'
-    if fields and not options and (fields.limit or fields.skip or fields.sort)
-      options = fields
-      fields = {}
-    query = {criteria, fields, options}
-    
-    # helpers
-    prepare = (q) -> o = {}; o[k] = JSON.stringify v for k, v of q when v; o
-        
-    # execute query
-    if has_callback
-      @database.request "#{@name}/findOne", prepare(query), (err, data) =>
+    [query, params, next] = exports.utils.prepareFind arguments
+
+    if next
+      @database.request "#{@name}/findOne", params, (err, data) =>
         return next err if err
         return next null, null if not data
         next null, new exports.Document @, data, query
     else
-      data = @database.request "#{@name}/findOne", prepare(query)
+      data = @database.request "#{@name}/findOne", params
       return null if not data
       return new exports.Document @, data, query
 

@@ -227,8 +227,9 @@ exports.server = (cfg) ->
           options = {}
 
           # use JSON encoded parameters
-          if req.query.criteria
-            criteria = JSON.parse req.query.criteria
+          if req.query.criteria or req.query.fields or req.query.options
+            if req.query.criteria
+              criteria = JSON.parse req.query.criteria
 
             if req.query.fields
               fields = JSON.parse req.query.fields
