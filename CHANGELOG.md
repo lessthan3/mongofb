@@ -1,3 +1,7 @@
+**v0.5.5** (2013-01-17)
+
+ - send 404 when findOne finds nothing
+
 **v0.5.4** (2013-01-16)
 
  - add a new find query object for token and nocache

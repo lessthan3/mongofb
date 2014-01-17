@@ -273,7 +273,9 @@ exports.server = (cfg) ->
             if __field
               fn = (o) -> o = o?[key] for key in __field.split '.' ; o
               docs = (fn doc for doc in docs)
-            docs = docs[0] if __single
+            if __single
+              return res.send 404 if docs.length == 0
+              docs = docs[0]
             next docs
 
 
