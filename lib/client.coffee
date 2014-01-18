@@ -325,7 +325,7 @@ class exports.Document
   constructor: (@collection, @data, @query) ->
     @database = @collection.database
     @key = "#{@collection.name}/#{@data._id}"
-    @query ?= {criteria: {}, fields: {}, options: {}}
+    @query ?= {criteria: null, fields: null, options: null}
     @ref = new exports.DocumentRef @
 
   emit: (event, args...) ->

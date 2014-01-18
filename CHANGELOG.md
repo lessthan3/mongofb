@@ -1,3 +1,7 @@
+**v0.5.6** (2013-01-17)
+
+ - default values of query field should be null
+
 **v0.5.5** (2013-01-17)
 
  - send 404 when findOne finds nothing
