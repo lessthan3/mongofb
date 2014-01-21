@@ -1,3 +1,7 @@
+**v0.5.7** (2013-01-20)
+
+ - allow fields for non json http requests
+
 **v0.5.6** (2013-01-17)
 
  - default values of query field should be null
