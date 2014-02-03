@@ -1,26 +1,30 @@
-**v0.5.7** (2013-01-20)
+**v0.5.8** (2014-02-03)
+
+ - update asset-wrap to 0.5.x
+
+**v0.5.7** (2014-01-20)
 
  - allow fields for non json http requests
 
-**v0.5.6** (2013-01-17)
+**v0.5.6** (2014-01-17)
 
  - default values of query field should be null
 
-**v0.5.5** (2013-01-17)
+**v0.5.5** (2014-01-17)
 
  - send 404 when findOne finds nothing
 
-**v0.5.4** (2013-01-16)
+**v0.5.4** (2014-01-16)
 
  - add a new find query object for token and nocache
  - multiple ways to use find and findOne arguments
 
-**v0.5.3** (2013-01-15)
+**v0.5.3** (2014-01-15)
 
  - add fields and options to javascript SDK
  - only allow writes to queried fields
 
-**v0.5.2** (2013-01-13)
+**v0.5.2** (2014-01-13)
 
  - fix example for v0.4.x+
  - fix duplicate update bug
