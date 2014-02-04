@@ -1,3 +1,10 @@
+**v0.6.0** (2014-02-03)
+
+ - update asset-warp to 0.6.x
+ - switch to jwt parsing library for token check
+ - watch out for invalid query parameters
+ - update other dependencies
+
 **v0.5.8** (2014-02-03)
 
  - update asset-wrap to 0.5.x

@@ -3,6 +3,7 @@ crypto = require 'crypto'
 express = require 'express'
 Firebase = require 'firebase'
 FirebaseTokenGenerator = require 'firebase-token-generator'
+jwt = require 'jwt-simple'
 LRU = require 'lru-cache'
 merge = require 'deepmerge'
 mongodb = require 'mongodb'
@@ -94,21 +95,14 @@ exports.server = (cfg) ->
           token = req.query.token
           delete req.query.token
 
-          # parse token
-          TOKEN_SEP = '.'
-          [encoded_header, encoded_claims, original_sig] = token.split TOKEN_SEP
-          claims = JSON.parse new Buffer(encoded_claims, 'base64').toString()
-          header = JSON.parse new Buffer(encoded_header, 'base64').toString()
+          try
+            payload = jwt.decode token, cfg.firebase.secret
+          catch err
+            return res.send 400, 'invalid token' if err
 
-          # verify signature
-          secure_bits = encoded_header + TOKEN_SEP + encoded_claims
-          hmac = crypto.createHmac 'sha256', cfg.firebase.secret
-          hmac.update secure_bits
-          hash_bytes = hmac.digest 'binary'
-          sig = FirebaseTokenGenerator::noPadWebsafeBase64Encode_ hash_bytes, 'binary'
-          if sig == original_sig
-            req.user = claims.d
-            req.admin = claims.admin
+          req.user = payload.d
+          req.admin = payload.admin
+          
         next()
       
       _cache = new LRU cfg.cache
@@ -229,13 +223,22 @@ exports.server = (cfg) ->
           # use JSON encoded parameters
           if req.query.criteria or req.query.options
             if req.query.criteria
-              criteria = JSON.parse req.query.criteria
+              try
+                criteria = JSON.parse req.query.criteria
+              catch err
+                return res.send 400, 'invalid criteria'
 
             if req.query.fields
-              fields = JSON.parse req.query.fields
+              try
+                fields = JSON.parse req.query.fields
+              catch err
+                return res.send 400, 'invalid fields'
 
             if req.query.options
-              options = JSON.parse req.query.options
+              try
+                options = JSON.parse req.query.options
+              catch err
+                return res.send 400, 'invalid options'
 
           # simple http queries
           else
