@@ -272,7 +272,7 @@ exports.server = (cfg) ->
           collection.find(criteria, fields, options).toArray (err, docs) ->
             return res.send 500, err if err
             hook('after', 'find', doc) for doc in docs
-            
+
             if __field
               fn = (o) -> o = o?[key] for key in __field.split '.' ; o
               docs = (fn doc for doc in docs)
@@ -295,8 +295,9 @@ exports.server = (cfg) ->
       router.route 'GET', url, auth, (req, res, next) ->
         req.url = "#{cfg.root}/#{req.params.collection}/find"
         req.query.limit = 1
-        req.query._id = req.params.id
+        # req.query._id = req.params.id
         req.query.__single = true
+        req.query.criteria = "{\"_id\": \"#{req.params.id}\"}"
         req.query.__field = req.params[1] if req.params[1]
         router._dispatch req, res, next
 
