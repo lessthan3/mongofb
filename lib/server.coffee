@@ -295,7 +295,6 @@ exports.server = (cfg) ->
       router.route 'GET', url, auth, (req, res, next) ->
         req.url = "#{cfg.root}/#{req.params.collection}/find"
         req.query.limit = 1
-        # req.query._id = req.params.id
         req.query.__single = true
         req.query.criteria = "{\"_id\": \"#{req.params.id}\"}"
         req.query.__field = req.params[1] if req.params[1]
