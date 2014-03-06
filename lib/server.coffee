@@ -264,6 +264,19 @@ exports.server = (cfg) ->
 
           options.limit = 1 if __single
 
+          # translate string _id to ObjectID if options.object_id is set
+          if options.object_id
+            try
+              if criteria._id
+                if typeof criteria._id is 'string'
+                  criteria._id = new mongodb.ObjectID criteria._id
+                else if criteria._id['$in']
+                  ids = criteria._id['$in']
+                  criteria._id['$in'] = (new mongodb.ObjectID id for id in ids)
+                delete options.object_id
+            catch err
+              return next err
+
           # hooks
           hook 'before', 'find', [criteria, fields, options]
 
