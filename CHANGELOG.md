@@ -1,6 +1,10 @@
+**v0.6.1** (2014-03-06)
+
+ - rollback firebase data if mongodb sync fails
+
 **v0.6.0** (2014-02-03)
 
- - update asset-warp to 0.6.x
+ - update asset-wrap to 0.6.x
  - switch to jwt parsing library for token check
  - watch out for invalid query parameters
  - update other dependencies

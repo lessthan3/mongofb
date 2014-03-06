@@ -279,11 +279,29 @@ class exports.Collection
 
   remove: (_id, next) ->
     ref = @database.firebase.child "#{@name}/#{_id}"
-    ref.set null, (err) =>
-      return next?(err) if err
-      @database.request "sync/#{@name}/#{_id}", (err, data) =>
+
+    # store current value
+    ref.once 'value', (snapshot) =>
+      old_data = snapshot.val()
+
+      # remove value from firebase
+      ref.set null, (err) =>
         return next?(err) if err
-        next?(null)
+
+        # sync result to mongodb
+        @database.request "sync/#{@name}/#{_id}", (err, data) =>
+
+          # if sync failed, rollback data
+          if err
+            ref.set old_data, (err) =>
+              if err
+                next?('sync failed, and rollback failed')
+              else
+                next?('sync failed, data rollback successful')
+
+          # sync successful
+          else
+            next?(null)
 
 class exports.CollectionRef extends exports.EventEmitter
   constructor: (@collection) ->
