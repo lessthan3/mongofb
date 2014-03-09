@@ -227,7 +227,6 @@ class exports.Collection
   # find(criteria, options, next)
   # find(criteria, fields, options, next)
   find: (criteria=null, fields=null, options=null, next=null) ->
-
     [query, params, next] = exports.utils.prepareFind arguments
  
     if next
@@ -238,14 +237,16 @@ class exports.Collection
       datas = @database.request("#{@name}/find", params) or []
       return (new exports.Document @, data, query for data in datas)
 
-  findById: (id, next) ->
+  findById: (id=null, fields=null, options=null, next=null) ->
+    [query, params, next] = exports.utils.prepareFind arguments
+
     if next
-      @database.request "#{@name}/#{id}", (err, data) =>
+      @database.request "#{@name}/#{id}", params, (err, data) =>
         return next err if err
         return next null, null if not data
         next null, new exports.Document @, data
     else
-      data = @database.request "#{@name}/#{id}"
+      data = @database.request "#{@name}/#{id}", params
       return null unless data
       return new exports.Document @, data
 
