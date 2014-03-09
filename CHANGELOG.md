@@ -1,3 +1,7 @@
+**v0.6.3** (2014-03-08)
+
+ - add fields to findById query
+
 **v0.6.2** (2014-03-08)
 
  - add built-in hooks for common operations
