@@ -42,6 +42,7 @@ exports.server = (cfg) ->
     options:
       limit_default: 20
       limit_max: 1000
+      set_last_modified: true
       use_objectid: true
   }, cfg
 
@@ -185,21 +186,35 @@ exports.server = (cfg) ->
       # match firebase urls. the key in firebase is /:collection/:id
       url = "#{cfg.root}/sync/:collection/:id*"
       router.route 'GET', url, auth, (req, res, next) ->
+        collection = db.collection req.params.collection
+
+        # get data
         ref = fb.child "#{req.params.collection}/#{req.params.id}"
         ref.once 'value', (snapshot) ->
-          collection = db.collection req.params.collection
-          try
-            qry = {_id: new mongodb.ObjectID req.params.id}
-          catch err
-            return next err
           doc = snapshot.val()
+
+          # convert _id if using ObjectIDs
+          if cfg.options.use_objectid
+            try
+              qry = {_id: new mongodb.ObjectID req.params.id}
+            catch err
+              return next err
+
+          # insert/update
           if doc
+
+            # set last modified
+            if cfg.options.set_last_modified
+              doc.last_modified = Date.now()
+
             doc._id = qry._id
             opt = {safe: true, upsert: true}
             collection.update qry, doc, opt, (err) ->
               return res.send 500, err if err
               hook 'after', 'find', doc
               res.send doc
+
+          # remove
           else
             collection.remove qry, (err) ->
               return res.end 500, err if err
@@ -270,12 +285,15 @@ exports.server = (cfg) ->
 
           # built-in hooks
           if cfg.options.use_objectid
-            if criteria._id
-              if typeof criteria._id is 'string'
-                criteria._id = new mongodb.ObjectID criteria._id
-              else if criteria._id.$in
-                ids = criteria._id.$in
-                criteria._id.$in = (new mongodb.ObjectID id for id in ids)
+            try
+              if criteria._id
+                if typeof criteria._id is 'string'
+                  criteria._id = new mongodb.ObjectID criteria._id
+                else if criteria._id.$in
+                  ids = criteria._id.$in
+                  criteria._id.$in = (new mongodb.ObjectID id for id in ids)
+            catch err
+              return next err
           if cfg.options.limit_default
             options.limit ?= cfg.options.limit_default
           if cfg.options.limit_max

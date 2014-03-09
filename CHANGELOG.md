@@ -1,3 +1,7 @@
+**v0.6.4** (2014-03-08)
+
+ - add last_modified feature
+
 **v0.6.3** (2014-03-08)
 
  - add fields to findById query
