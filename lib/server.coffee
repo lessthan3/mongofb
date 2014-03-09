@@ -39,6 +39,10 @@ exports.server = (cfg) ->
           poolSize: 1
           socketOptions:
             keepAlive: 120
+    options:
+      limit_default: 20
+      limit_max: 1000
+      use_objectid: true
   }, cfg
 
 
@@ -264,6 +268,19 @@ exports.server = (cfg) ->
 
           options.limit = 1 if __single
 
+          # built-in hooks
+          if cfg.options.use_objectid
+            if criteria._id
+              if typeof criteria._id is 'string'
+                criteria._id = new mongodb.ObjectID criteria._id
+              else if criteria._id.$in
+                ids = criteria._id.$in
+                criteria._id.$in = (new mongodb.ObjectID id for id in ids)
+          if cfg.options.limit_default
+            options.limit ?= cfg.options.limit_default
+          if cfg.options.limit_max
+            options.limit = Math.min options.limit, cfg.options.limit_max
+          
           # hooks
           hook 'before', 'find', [criteria, fields, options]
 
