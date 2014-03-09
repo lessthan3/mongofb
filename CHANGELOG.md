@@ -1,3 +1,7 @@
+**v0.6.2** (2014-03-08)
+
+ - add built-in hooks for common operations
+
 **v0.6.1** (2014-03-06)
 
  - rollback firebase data if mongodb sync fails
