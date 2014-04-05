@@ -46,7 +46,7 @@ else
       qs: args.params
       method: 'GET'
     }, (err, resp, body) =>
-      if resp.statusCode == 200
+      if resp?.statusCode == 200
         if args.json
           body = JSON.parse body
         args.next err, body
