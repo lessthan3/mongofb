@@ -218,7 +218,7 @@ exports.server = (cfg) ->
           else
             collection.remove qry, (err) ->
               return res.end 500, err if err
-              res.send null
+              res.send {}
 
 
       # db.collection.find
