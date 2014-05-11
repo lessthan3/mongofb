@@ -4,7 +4,7 @@
     "email": "b.n.williams@gmail.com"
   },
   "dependencies": {
-    "asset-wrap": "0.6.x",
+    "asset-wrap": "0.8.x",
     "deepmerge": "0.2.x",
     "express": "3.4.x",
     "firebase": "1.0.x",
@@ -22,5 +22,5 @@
     "type": "git",
     "url": "git://github.com/scien/mongofb.git"
   },
-  "version": "0.6.4"
+  "version": "0.7.0"
 }
