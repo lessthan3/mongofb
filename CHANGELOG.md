@@ -1,5 +1,9 @@
 
-**v0.7.0** (2014-05-1)
+**v0.7.1** (2014-05-15)
+
+ - better error messaging
+
+**v0.7.0** (2014-05-01)
 
  - update asset-wrap dependency
 
