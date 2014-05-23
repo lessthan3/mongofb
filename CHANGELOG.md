@@ -1,3 +1,8 @@
+**v0.7.6** (2014-05-23)
+
+ - add npm-debug.log to gitignore
+ - handle 500 responses as errors from server-side usage fetches
+
 **v0.7.5** (2014-05-22)
 
  - body = JSON.parse body bug

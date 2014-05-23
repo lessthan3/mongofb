@@ -49,14 +49,25 @@ else
       return args.next err if err
       return args.next 'bad response' unless resp
 
-      if resp.statusCode is 200
-        if args.json
-          try
-            body = JSON.parse body
-          catch err
-            body = null
-      else
-        body = null
+      switch resp.statusCode
+
+        # success
+        when 200
+          if args.json
+            try
+              body = JSON.parse body
+            catch err
+              body = null
+
+        # not found, return null
+        when 404
+          body = null
+
+        # unexpected response, send error
+        # example: 500 error for duplicate key error
+        else
+          err = body
+          body = null
 
       args.next err, body
 
