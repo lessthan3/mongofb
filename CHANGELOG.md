@@ -1,4 +1,8 @@
 
+**v0.7.2** (2014-05-22)
+
+ - better handling of bad request responses
+
 **v0.7.1** (2014-05-15)
 
  - better error messaging

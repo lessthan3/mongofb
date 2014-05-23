@@ -46,12 +46,17 @@ else
       qs: args.params
       method: 'GET'
     }, (err, resp, body) =>
-      if resp.statusCode == 200
-        if args.json
-          body = JSON.parse body
-        args.next err, body
-      else
-        args.next err, null
+      return args.next err if err
+      return args.next 'bad response' unless resp
+      return args.next body if resp.statusCode < 200 or resp.statusCode > 302
+
+      # try to parse body
+      try
+        body = JSON.parse body
+      catch err
+        return args.next err
+
+      args.next null, body
 
 exports.utils =
   isEquals: (a, b) ->
