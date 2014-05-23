@@ -1,4 +1,8 @@
 
+**v0.7.4** (2014-05-22)
+
+ - need to keep next(null, null) for 404 case from fetch
+
 **v0.7.3** (2014-05-22)
 
  - 0.7.2, but let 404s return as null instead of error

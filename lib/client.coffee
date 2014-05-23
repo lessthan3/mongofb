@@ -49,13 +49,16 @@ else
       return args.next err if err
       return args.next 'bad response' unless resp
 
-      if args.json and resp.statusCode is 200
-        try
-          body = JSON.parse body
-        catch err
-          return args.next err
+      if resp.statusCode is 200
+        if args.json
+          try
+            body JSON.parse body
+          catch err
+            body = null
+      else
+        body = null
 
-      args.next null, body
+      args.next err, body
 
 exports.utils =
   isEquals: (a, b) ->
