@@ -52,7 +52,7 @@ else
       if resp.statusCode is 200
         if args.json
           try
-            body JSON.parse body
+            body = JSON.parse body
           catch err
             body = null
       else
@@ -217,7 +217,7 @@ class exports.Collection
         return next?(err) if err
         ref.setPriority priority if priority
         @database.request "sync/#{@name}/#{id}", {
-          _: Date.now()
+          _: "#{Date.now()}-#{Math.random()}"
         }, (err, data) =>
           return next?(err) if err
           next?(null, new exports.Document @, data)
