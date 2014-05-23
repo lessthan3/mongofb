@@ -48,13 +48,12 @@ else
     }, (err, resp, body) =>
       return args.next err if err
       return args.next 'bad response' unless resp
-      return args.next body if resp.statusCode < 200 or resp.statusCode > 302
 
-      # try to parse body
-      try
-        body = JSON.parse body
-      catch err
-        return args.next err
+      if args.json and resp.statusCode is 200
+        try
+          body = JSON.parse body
+        catch err
+          return args.next err
 
       args.next null, body
 

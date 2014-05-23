@@ -1,4 +1,8 @@
 
+**v0.7.3** (2014-05-22)
+
+ - 0.7.2, but let 404s return as null instead of error
+
 **v0.7.2** (2014-05-22)
 
  - better handling of bad request responses
