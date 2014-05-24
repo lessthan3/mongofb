@@ -2,6 +2,7 @@
 **v0.8.0** (2014-05-23)
 
  - Add auto created=Date.now() config option
+ - ignore 'created' and 'last_modified' fields for triggering updates
 
 **v0.7.8** (2014-05-23)
 

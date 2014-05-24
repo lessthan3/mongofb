@@ -471,7 +471,13 @@ class exports.DocumentRef extends exports.EventEmitter
         @updateData value
         next?(null)
 
+  # @data = what we got from mongodb or what was already updated here
+  # data = new data from firebase
   updateData: (data) ->
+
+    # watch out for 'created' and 'last_modified' data in mongodb
+    data.created = @data.created
+    data.last_modified = @data.last_modified
     return if exports.utils.isEquals @data, data
 
     # update DocumentRef data
