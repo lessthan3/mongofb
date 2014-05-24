@@ -1,3 +1,8 @@
+
+**v0.7.7** (2014-05-23)
+
+ - fix caching when running server-side
+
 **v0.7.6** (2014-05-23)
 
  - add npm-debug.log to gitignore

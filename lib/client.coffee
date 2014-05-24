@@ -41,6 +41,8 @@ else
   request = require 'request'
   Firebase = require 'firebase'
   fetch = (args) ->
+    args.params ?= {}
+    args.params._ = "#{Date.now()}-#{Math.random()}" if not args.cache
     request {
       url: args.url
       qs: args.params
@@ -153,6 +155,8 @@ class exports.EventEmitter
 
 class exports.Database
   constructor: (cfg) ->
+    @cache = true
+    @safe_writes = true
     if typeof cfg == 'string'
       @api = cfg
       @request 'Firebase', false, (url) ->
@@ -160,8 +164,6 @@ class exports.Database
     else
       @api = cfg.server
       @firebase = new Firebase cfg.firebase
-    @cache = true
-    @safe_writes = true
 
   collection: (name) ->
     new exports.Collection @, name
