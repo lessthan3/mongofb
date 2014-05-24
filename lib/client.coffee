@@ -42,7 +42,7 @@ else
   Firebase = require 'firebase'
   fetch = (args) ->
     args.params ?= {}
-    args.params._ = "#{Date.now()}-#{Math.random()}" if not args.cache
+    args.params._ = Date.now() if not args.cache
     request {
       url: args.url
       qs: args.params
@@ -221,7 +221,7 @@ class exports.Collection
       next = priority
       priority = null
     @database.request 'ObjectID', false, {
-      _: "#{Date.now()}-#{Math.random()}"
+      _: Date.now()
     }, (err, id) =>
       return next?(err) if err
       doc._id = id
@@ -230,7 +230,7 @@ class exports.Collection
         return next?(err) if err
         ref.setPriority priority if priority
         @database.request "sync/#{@name}/#{id}", {
-          _: "#{Date.now()}-#{Math.random()}"
+          _: Date.now()
         }, (err, data) =>
           return next?(err) if err
           next?(null, new exports.Document @, data)

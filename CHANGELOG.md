@@ -1,4 +1,8 @@
 
+**v0.7.8** (2014-05-23)
+
+ - Date.now() should be enough
+
 **v0.7.7** (2014-05-23)
 
  - fix caching when running server-side
