@@ -42,6 +42,7 @@ exports.server = (cfg) ->
     options:
       limit_default: 20
       limit_max: 1000
+      set_created: true
       set_last_modified: true
       use_objectid: true
   }, cfg
@@ -202,6 +203,10 @@ exports.server = (cfg) ->
 
           # insert/update
           if doc
+
+            # set created
+            if cfg.options.set_created
+              doc.created ?= Date.now()
 
             # set last modified
             if cfg.options.set_last_modified
