@@ -475,9 +475,12 @@ class exports.DocumentRef extends exports.EventEmitter
   # data = new data from firebase
   updateData: (data) ->
 
-    # watch out for 'created' and 'last_modified' data in mongodb
-    data.created = @data.created if @data.created
-    data.last_modified = @data.last_modified if @data.last_modified
+    # ignore special 'created' and 'last_modified' fields on documents
+    if @key == @document.key
+      data.created = @data.created if @data?.created
+      data.last_modified = @data.last_modified if @data?.last_modified
+
+    # no updates to send if data isn't changing
     return if exports.utils.isEquals @data, data
 
     # update DocumentRef data

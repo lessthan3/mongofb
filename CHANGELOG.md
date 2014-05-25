@@ -1,3 +1,7 @@
+**v0.8.2** (2014-05-25)
+
+ - only check created and last_modified fields on document level refs
+
 **v0.8.1** (2014-05-24)
 
  - fix updateData bug for when @data.created is undefined
