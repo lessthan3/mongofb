@@ -476,8 +476,8 @@ class exports.DocumentRef extends exports.EventEmitter
   updateData: (data) ->
 
     # watch out for 'created' and 'last_modified' data in mongodb
-    data.created = @data.created
-    data.last_modified = @data.last_modified
+    data.created = @data.created if @data.created
+    data.last_modified = @data.last_modified if @data.last_modified
     return if exports.utils.isEquals @data, data
 
     # update DocumentRef data

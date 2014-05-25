@@ -1,3 +1,6 @@
+**v0.8.1** (2014-05-24)
+
+ - fix updateData bug for when @data.created is undefined
 
 **v0.8.0** (2014-05-23)
 
