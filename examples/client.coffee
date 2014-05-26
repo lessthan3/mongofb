@@ -6,6 +6,7 @@ window.cookies = db.collection 'cookies'
 
 db.cache = false
 
+# test Collection
 cookies.insert {type: 'chocolate'}, (err, cookie) ->
   throw err if err
   window.cookie = cookie
@@ -20,6 +21,7 @@ cookies.insert {type: 'chocolate'}, (err, cookie) ->
   ref.set "peanut butter: #{Math.random()}"
 
 
+  # test PseudoCollection
   window.chocolate_cookies = new mongofb.PseudoCollection db, 'cookies', {
     type: 'chocolate'
   }
@@ -32,3 +34,25 @@ cookies.insert {type: 'chocolate'}, (err, cookie) ->
     chocolate_cookies.insert {}, (err, cookie) ->
       throw err if err
       console.log 'inserted chocolate cookie', cookie
+
+
+  # test sync queries
+  console.log 'sync 1', cookies.find()
+  console.log 'sync 2', cookies.find {}
+  console.log 'sync 3', cookies.find {}, {type: 1}
+  console.log 'sync 4', cookies.find {}, {limit: 1}
+  console.log 'sync 5', cookies.find {}, {type: 1}, {limit: 1}
+
+
+  # test async queries
+  cookies.find (err, cookies) ->
+    console.log 'async 1', cookies
+  cookies.find {}, (err, cookies) ->
+    console.log 'async 2', cookies
+  cookies.find {}, {type: 1}, (err, cookies) ->
+    console.log 'async 3', cookies
+  cookies.find {}, {limit: 1}, (err, cookies) ->
+    console.log 'async 4', cookies
+  cookies.find {}, {type: 1}, {limit: 1}, (err, cookies) ->
+    console.log 'async 5', cookies
+

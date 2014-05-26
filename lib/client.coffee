@@ -107,6 +107,9 @@ exports.utils =
     has_callback = typeof args[args.length - 1] is 'function'
     next = args[args.length - 1] if has_callback
 
+    # defaults
+    criteria = {}
+
     # query objects
     criteria = args[0] if typeof args[0] is 'object'
     fields = args[1] if typeof args[1] is 'object'
