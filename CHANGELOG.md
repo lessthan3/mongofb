@@ -1,3 +1,7 @@
+**v0.9.2** (2014-05-25)
+
+ - fix PseudoCollection constructor
+
 **v0.9.1** (2014-05-25)
 
  - add input validation to Collection.remove

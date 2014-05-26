@@ -328,7 +328,7 @@ class exports.Collection
 
 class exports.PseudoCollection extends exports.Collection
   constructor: (@database, @name, @defaults={}) ->
-    super()
+    super @database, @name
 
   insert: (doc, priority, next) ->
     doc[k] = v for k, v of @defaults
