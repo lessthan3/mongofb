@@ -1,3 +1,8 @@
+**v0.9.0** (2014-05-25)
+
+ - add PseudoCollection
+ - change Collection.remove to Collection.removeById to avoid confusion
+
 **v0.8.2** (2014-05-25)
 
  - only check created and last_modified fields on document level refs

@@ -26,7 +26,7 @@ app.get '/', (req, res) ->
         </div>
         <script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.2/jquery.min.js'></script>
         <script type='text/javascript' src='https://cdn.firebase.com/v0/firebase.js'></script>
-        <script type='text/javascript' src='/db/1.0/mongofb.js'></script>
+        <script type='text/javascript' src='/db/1.0/mongofb.js?#{Date.now()}'></script>
         <script type='text/javascript'>#{asset.data}</script>
       </body>
     </html>

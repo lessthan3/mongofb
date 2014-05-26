@@ -19,3 +19,16 @@ cookies.insert {type: 'chocolate'}, (err, cookie) ->
 
   ref.set "peanut butter: #{Math.random()}"
 
+
+  window.chocolate_cookies = new mongofb.PseudoCollection db, 'cookies', {
+    type: 'chocolate'
+  }
+  console.log 'looking for chocolate cookies'
+  chocolate_cookies.findOne {}, (err, cookie) ->
+    throw err if err
+    console.log cookie
+
+    console.log 'inserting chocolate cookie'
+    chocolate_cookies.insert {}, (err, cookie) ->
+      throw err if err
+      console.log 'inserted chocolate cookie', cookie

@@ -217,9 +217,7 @@ class exports.Collection
     doc.get path[1..].join '/'
 
   insert: (doc, priority, next) ->
-    if typeof priority == 'function'
-      next = priority
-      priority = null
+    [next, priority] = [priority, null] if typeof priority is 'function'
     @database.request 'ObjectID', false, {
       _: Date.now()
     }, (err, id) =>
@@ -298,7 +296,7 @@ class exports.Collection
     @ref.limit limit
     @ref
 
-  remove: (_id, next) ->
+  removeById: (_id, next) ->
     ref = @database.firebase.child "#{@name}/#{_id}"
 
     # store current value
@@ -323,6 +321,24 @@ class exports.Collection
           # sync successful
           else
             next?(null)
+
+class exports.PseudoCollection extends exports.Collection
+  constructor: (@database, @name, @defaults={}) ->
+    @ref = new exports.CollectionRef @
+
+  insert: (doc, priority, next) ->
+    doc[k] = v for k, v of @defaults
+    super doc, priority, next
+
+  find: (criteria=null, fields=null, options=null, next=null) ->
+    [query, params, next] = exports.utils.prepareFind arguments
+    query.criteria[k] = v for k, v of @defaults
+    super query.criteria, query.fields, query.options, next
+
+  findOne: (criteria=null, fields=null, options=null, next=null) ->
+    [query, params, next] = exports.utils.prepareFind arguments
+    query.criteria[k] = v for k, v of @defaults
+    super query.criteria, query.fields, query.options, next
 
 class exports.CollectionRef extends exports.EventEmitter
   constructor: (@collection) ->
@@ -386,7 +402,7 @@ class exports.Document
     @ref.refresh next
 
   remove: (next) ->
-    @collection.remove @data._id, next
+    @collection.removeById @data._id, next
 
   save: (next) ->
     @ref.set @data, next
