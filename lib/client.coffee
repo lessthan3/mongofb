@@ -92,6 +92,10 @@ exports.utils =
           return false if a[k] != b[k]
     true
   
+  # logging utility
+  log: (msg) ->
+    console.log "[monogfb] #{msg}"
+
   # prepare query parameters for a find
   prepareFind: (the_arguments) ->
     args = Array.prototype.slice.call the_arguments, 0
@@ -324,7 +328,7 @@ class exports.Collection
 
 class exports.PseudoCollection extends exports.Collection
   constructor: (@database, @name, @defaults={}) ->
-    @ref = new exports.CollectionRef @
+    super()
 
   insert: (doc, priority, next) ->
     doc[k] = v for k, v of @defaults
@@ -402,6 +406,8 @@ class exports.Document
     @ref.refresh next
 
   remove: (next) ->
+    if typeof next not in ['function', 'undefined']
+      return exports.utils.log 'invalid callback function to remove'
     @collection.removeById @data._id, next
 
   save: (next) ->
