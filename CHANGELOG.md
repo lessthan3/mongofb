@@ -1,6 +1,7 @@
 **v0.9.1** (2014-05-25)
 
  - add input validation to Collection.remove
+ - add DocumentRef.remove
 
 **v0.9.0** (2014-05-25)
 

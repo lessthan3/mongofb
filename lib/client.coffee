@@ -473,6 +473,11 @@ class exports.DocumentRef extends exports.EventEmitter
       @updateData snapshot.val()
       next?()
 
+  remove: (next) ->
+    if typeof next not in ['function', 'undefined']
+      return exports.utils.log 'invalid callback function to remove'
+    @set null, next
+
   set: (value, next) ->
 
     # if specific fields were queried for, only allow those to be updated
