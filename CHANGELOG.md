@@ -1,3 +1,7 @@
+**in progress**
+
+ - change 'callback' to 'handler' for events to avoid confusion
+
 **v0.9.3** (2014-05-25)
 
  - allow Collection.find()

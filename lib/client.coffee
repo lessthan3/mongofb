@@ -149,16 +149,17 @@ class exports.EventEmitter
 
   emit: (event, args...) ->
     if @events[event]
-      callback(args...) for callback in @events[event]
+      handler(args...) for handler in @events[event]
 
-  on: (event, callback) ->
+  on: (event, handler) ->
     @events[event] ?= []
-    @events[event].push callback
+    @events[event].push handler
 
-  off: (event, callback=null) ->
+  # handler=null will remove all events of that type
+  off: (event, handler=null) ->
     @events[event] ?= []
     @events[event] = @events[event].filter (fn) ->
-      callback isnt null and fn isnt callback
+      handler isnt null and fn isnt handler
 
 class exports.Database
   constructor: (cfg) ->
@@ -361,8 +362,8 @@ class exports.CollectionRef extends exports.EventEmitter
   startAt: (priority) ->
     @ref = @ref.startAt priority
 
-  on: (event, callback) ->
-    super event, callback
+  on: (event, handler) ->
+    super event, handler
 
     if @events.insert?.length > 0
       @ref.off 'child_added'
@@ -374,8 +375,8 @@ class exports.CollectionRef extends exports.EventEmitter
       @ref.on 'child_removed', (snapshot) =>
         @emit 'remove', snapshot.val()
 
-  off: (event, callback=null) ->
-    super event, callback
+  off: (event, handler=null) ->
+    super event, handler
 
     if @events.insert?.length == 0
       @ref.off 'child_added'
@@ -399,11 +400,11 @@ class exports.Document
   name: ->
     @ref.name()
     
-  on: (event, callback) ->
-    @ref.on event, callback
+  on: (event, handler) ->
+    @ref.on event, handler
 
-  off: (event, callback) ->
-    @ref.off event, callback
+  off: (event, handler) ->
+    @ref.off event, handler
 
   refresh: (next) ->
     @ref.refresh next
@@ -453,8 +454,8 @@ class exports.DocumentRef extends exports.EventEmitter
 
   # value: emit now and when updated
   # update: emit only when updated
-  on: (event, callback) ->
-    super event, callback
+  on: (event, handler) ->
+    super event, handler
 
     if @events.update?.length > 0 or @events.value?.length > 0
       @emit 'value', @val()
@@ -462,8 +463,8 @@ class exports.DocumentRef extends exports.EventEmitter
       @ref.on 'value', (snapshot) =>
         @updateData snapshot.val()
 
-  off: (event, callback=null) ->
-    super event, callback
+  off: (event, handler=null) ->
+    super event, handler
 
     unless @events.update?.length and @events.value?.length
       @ref.off 'value'
