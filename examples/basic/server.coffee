@@ -1,5 +1,5 @@
 express = require 'express'
-mongofb = require '../lib/server'
+mongofb = require '../../lib/server'
 wrap = require 'asset-wrap'
 
 app = express()
