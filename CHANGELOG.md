@@ -1,6 +1,7 @@
 **in progress**
 
  - change 'callback' to 'handler' for events to avoid confusion
+ - better cache bust for inserts
 
 **v0.9.3** (2014-05-25)
 

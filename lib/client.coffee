@@ -42,7 +42,7 @@ else
   Firebase = require 'firebase'
   fetch = (args) ->
     args.params ?= {}
-    args.params._ = Date.now() if not args.cache
+    args.params._ ?= Date.now() if not args.cache
     request {
       url: args.url
       qs: args.params
@@ -227,7 +227,7 @@ class exports.Collection
   insert: (doc, priority, next) ->
     [next, priority] = [priority, null] if typeof priority is 'function'
     @database.request 'ObjectID', false, {
-      _: Date.now()
+      _: "#{Date.now()}-#{Math.random()}"
     }, (err, id) =>
       return next?(err) if err
       doc._id = id
