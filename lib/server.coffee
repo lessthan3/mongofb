@@ -167,6 +167,16 @@ exports.server = (cfg) ->
             return res.send 500, err.toString() if err
             next asset.data
 
+      # client javascript minified
+      router.route 'GET', "#{cfg.root}/mongofb.min.js", (req, res, next) ->
+        contentType 'text/javascript'
+        cache (next) ->
+          asset = new wrap.Snockets {
+            src: "#{__dirname}/client.coffee"
+            minify: true
+          }, (err) ->
+            return res.send 500, err.toString() if err
+            next asset.data
 
       # firebase url
       router.route 'GET', "#{cfg.root}/Firebase", (req, res, next) ->
