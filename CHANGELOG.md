@@ -1,6 +1,6 @@
-**in progress**
+**v0.9.5** (2014-07-13)
 
- - 
+ -  add minified client js route
 
 **v0.9.4** (2014-07-07)
 
