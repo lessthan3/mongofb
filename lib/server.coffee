@@ -97,9 +97,10 @@ exports.server = (cfg) ->
 
       # helpers
       auth = (req, res, next) ->
-        if req.query.token
-          token = req.query.token
-          delete req.query.token
+        token = req.query?.token or req.body?.token
+        if token
+          delete req.query?.token
+          delete req.body?.token
 
           try
             payload = jwt.decode token, cfg.firebase.secret

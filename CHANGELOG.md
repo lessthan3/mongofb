@@ -1,3 +1,7 @@
+**v0.9.6** (2014-08-05)
+
+ - also check POST requests for a 'token' to authenticate the user
+
 **v0.9.5** (2014-07-13)
 
  -  add minified client js route
