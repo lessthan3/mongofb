@@ -1,3 +1,8 @@
+**v0.9.7** (2014-08-17)
+
+ - set required node version in package.json
+ - add travis test configuration
+
 **v0.9.6** (2014-08-05)
 
  - also check POST requests for a 'token' to authenticate the user
