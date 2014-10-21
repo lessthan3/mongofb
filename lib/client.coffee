@@ -85,7 +85,7 @@ exports.utils =
       when 'object'
         return false if Object.keys(a).length isnt Object.keys(b).length
         for k of a
-          return false if not isEquals a[k], b[k]
+          return false if not exports.utils.isEquals a[k], b[k]
       else
         return false if a isnt b
     true
