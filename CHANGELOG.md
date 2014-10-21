@@ -1,4 +1,4 @@
-**v0.9.8** (2014-10-21)
+**v0.9.9** (2014-10-21)
 
  - fix isEquals for when refs do not reference objects
 
