@@ -1,3 +1,7 @@
+**v0.9.8** (2014-10-21)
+
+ - fix isEquals for when refs do not reference objects
+
 **v0.9.7** (2014-08-17)
 
  - set required node version in package.json

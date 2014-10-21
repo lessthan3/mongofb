@@ -77,19 +77,17 @@ exports.utils =
   isEquals: (a, b) ->
     return false if a and not b
     return false if b and not a
-    for k of a
-      return false if typeof b[k] is 'undefined'
-    for k of b
-      return false if typeof a[k] is 'undefined'
+    return false if typeof(a) isnt typeof(b)
 
-    for k of a
-      switch typeof a[k]
-        when 'object'
-          return false if not exports.utils.isEquals a[k], b[k]
-        when 'function'
-          return false if a[k].toString() != b[k].toString()
-        else
-          return false if a[k] != b[k]
+    switch typeof a
+      when 'function'
+        return false if a.toString() isnt b.toString()
+      when 'object'
+        return false if Object.keys(a).length isnt Object.keys(b).length
+        for k of a
+          return false if not isEquals a[k], b[k]
+      else
+        return false if a isnt b
     true
   
   # logging utility
