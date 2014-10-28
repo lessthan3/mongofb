@@ -78,6 +78,7 @@ exports.utils =
     return false if a and not b
     return false if b and not a
     return false if typeof(a) isnt typeof(b)
+    return true if a is null and b is null
 
     switch typeof a
       when 'function'
@@ -85,7 +86,7 @@ exports.utils =
       when 'object'
         return false if Object.keys(a).length isnt Object.keys(b).length
         for k of a
-          return false if not exports.utils.isEquals a[k], b[k]
+          return false unless exports.utils.isEquals a[k], b[k]
       else
         return false if a isnt b
     true
@@ -422,8 +423,11 @@ class exports.Document
     @ref.val()
 
 class exports.DocumentRef extends exports.EventEmitter
+  @_counter = 0
+
   constructor: (@document, @path='') ->
     super()
+    @counter = ++exports.DocumentRef._counter
     @collection = @document.collection
     @database = @collection.database
 
@@ -434,6 +438,7 @@ class exports.DocumentRef extends exports.EventEmitter
     @key = "#{@document.key}/#{@path.join '/'}".replace /\/$/, ''
     @data = @document.data
     @data = @data?[k] for k in @path when k isnt ''
+    @data ?= null
     @ref = @database.firebase.child @key
 
   get: (path) ->
@@ -512,27 +517,54 @@ class exports.DocumentRef extends exports.EventEmitter
     # no updates to send if data isn't changing
     return if exports.utils.isEquals @data, data
 
-    # update DocumentRef data
-    @data = data
-    @emit 'update', @val()
-    @emit 'value', @val()
+    # here, we need to set a brief timeout so all firebase listeners can
+    # fire before we update any data. if we ran this code synchonously
+    # a DocumentRef may update the Document data before the Document
+    # listener had a chance to update. In that case, the isEquals call a few
+    # lines above would return true, and the listener for the Document would
+    # never be fired. With this setTimeout, all listeners have a chance to
+    # compare against past data before anything is updated.
+    #
+    # example
+    # ```
+    #   cookie = db.cookies.findOne()
+    #   type = cookie.get 'type'
+    #   cookie.on 'update', (val) ->
+    #     console.log 'cookie was updated'
+    #   type.on 'update', (val) ->
+    #     console.log 'type was updated'
+    #   type.set 'new type'
+    # ```
+    #
+    # this works because setTimeout() re-queues the new javascript at the end
+    # of the execution queue.
+    setTimeout ( =>
 
-    # update Document data
-    if @path.length == 1 and @path[0] == ''
-      @document.data = data
-    else
-      [keys..., key] = @path
-      target = @document.data
-      for k in keys
-        target[k] ?= {}
-        target = target[k]
+      # update DocumentRef data
+      @data = data
 
-      return if exports.utils.isEquals target[key], data
-      target[key] = data
-      @document.emit 'update', @document.val()
-      @document.emit 'value', @document.val()
+      # update document data. this will allow handlers to use
+      # ref.get and have access to new data
+      if @path.length == 1 and @path[0] == ''
+        @document.data = data
+      else
+        [keys..., key] = @path
+        target = @document.data
+        for k in keys
+          target[k] ?= {}
+          target = target[k]
+
+        return if exports.utils.isEquals target[key], data
+        target[key] = data
+
+      # emit the updates
+      @emit 'update', @val()
+      @emit 'value', @val()
+
+    ), 0
 
   val: ->
+    return null if @data is null
     if Array.isArray @data
       extend [], @data
     else if typeof @data == 'object'
