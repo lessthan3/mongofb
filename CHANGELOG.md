@@ -1,4 +1,4 @@
-**v0.9.10** (2014-10-21)
+**v0.9.10** (2014-10-28)
 
  - emit updates after the document.data has been updated
  - default @data to null because firebase data is never undefined
