@@ -1,3 +1,7 @@
+**v0.9.11** (2014-12-04)
+
+ - allow multiple DocumentRefs to listen to the same property
+
 **v0.9.10** (2014-10-28)
 
  - emit updates after the document.data has been updated
