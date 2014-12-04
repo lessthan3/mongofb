@@ -441,6 +441,9 @@ class exports.DocumentRef extends exports.EventEmitter
     @data ?= null
     @ref = @database.firebase.child @key
 
+  log: ->
+    console.log "ref_#{@counter}", arguments...
+
   get: (path) ->
     temp = @path.slice 0
     while exports.utils.startsWith path, '..'
@@ -462,7 +465,6 @@ class exports.DocumentRef extends exports.EventEmitter
 
     if @events.update?.length > 0 or @events.value?.length > 0
       @emit 'value', @val()
-      @ref.off 'value'
       @ref.on 'value', (snapshot) =>
         @updateData snapshot.val()
 
@@ -553,15 +555,13 @@ class exports.DocumentRef extends exports.EventEmitter
         for k in keys
           target[k] ?= {}
           target = target[k]
-
-        return if exports.utils.isEquals target[key], data
         target[key] = data
 
       # emit the updates
       @emit 'update', @val()
       @emit 'value', @val()
 
-    ), 0
+    ), 1
 
   val: ->
     return null if @data is null
