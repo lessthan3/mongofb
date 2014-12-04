@@ -18,9 +18,7 @@ cookies.insert {type: 'chocolate'}, (err, cookie) ->
   cookie.on 'update', (val) ->
     console.log 'cookie updated to', val
 
-
   ref.set "peanut butter: #{Math.random()}"
-
 
   # test PseudoCollection
   window.chocolate_cookies = new mongofb.PseudoCollection db, 'cookies', {
@@ -36,14 +34,12 @@ cookies.insert {type: 'chocolate'}, (err, cookie) ->
       throw err if err
       console.log 'inserted chocolate cookie', cookie
 
-
   # test sync queries
   console.log 'sync 1', cookies.find()
   console.log 'sync 2', cookies.find {}
   console.log 'sync 3', cookies.find {}, {type: 1}
   console.log 'sync 4', cookies.find {}, {limit: 1}
   console.log 'sync 5', cookies.find {}, {type: 1}, {limit: 1}
-
 
   # test async queries
   cookies.find (err, cookies) ->
@@ -57,3 +53,10 @@ cookies.insert {type: 'chocolate'}, (err, cookie) ->
   cookies.find {}, {type: 1}, {limit: 1}, (err, cookies) ->
     console.log 'async 5', cookies
 
+  ###
+  window.ref1 = cookie.get 'test'
+  window.ref2 = cookie.get 'test'
+
+  ref1.on 'update', (v) -> console.log 'ref1 on value'
+  ref2.on 'update', (v) -> console.log 'ref2 on value'
+  ###
