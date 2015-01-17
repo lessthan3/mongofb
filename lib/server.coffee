@@ -165,7 +165,7 @@ exports.server = (cfg) ->
           asset = new wrap.Snockets {
             src: "#{__dirname}/client.coffee"
           }, (err) ->
-            return res.send 500, err.toString() if err
+            return res.send 400, err.toString() if err
             next asset.data
 
       # client javascript minified
@@ -176,7 +176,7 @@ exports.server = (cfg) ->
             src: "#{__dirname}/client.coffee"
             minify: true
           }, (err) ->
-            return res.send 500, err.toString() if err
+            return res.send 400, err.toString() if err
             next asset.data
 
       # firebase url
@@ -226,14 +226,14 @@ exports.server = (cfg) ->
             doc._id = qry._id
             opt = {safe: true, upsert: true}
             collection.update qry, doc, opt, (err) ->
-              return res.send 500, err.toString() if err
+              return res.send 400, err.toString() if err
               hook 'after', 'find', doc
               res.send doc
 
           # remove
           else
             collection.remove qry, (err) ->
-              return res.end 500, err if err
+              return res.end 400, err if err
               res.send null
 
 
@@ -321,7 +321,7 @@ exports.server = (cfg) ->
           # run query
           collection = db.collection req.params.collection
           collection.find(criteria, fields, options).toArray (err, docs) ->
-            return res.send 500, err.toString() if err
+            return res.send 400, err.toString() if err
             hook('after', 'find', doc) for doc in docs
             
             if __field

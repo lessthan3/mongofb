@@ -1,3 +1,7 @@
+**v0.9.12** (2015-01-17)
+
+ - change 500 errors to 400s
+
 **v0.9.11** (2014-12-04)
 
  - allow multiple DocumentRefs to listen to the same property
