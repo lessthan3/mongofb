@@ -210,7 +210,7 @@ exports.server = (cfg) ->
             try
               qry = {_id: new mongodb.ObjectID req.params.id}
             catch err
-              return next err
+              return res.send 400, 'Invalid ObjectID'
 
           # insert/update
           if doc
@@ -309,7 +309,7 @@ exports.server = (cfg) ->
                   ids = criteria._id.$in
                   criteria._id.$in = (new mongodb.ObjectID id for id in ids)
             catch err
-              return next err
+              return res.send 400, 'Invalid ObjectID'
           if cfg.options.limit_default
             options.limit ?= cfg.options.limit_default
           if cfg.options.limit_max

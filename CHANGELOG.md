@@ -1,3 +1,7 @@
+**0.9.13** (2014-02-17)
+
+ - fix error response for invalid ObjectIDs
+
 **v0.9.12** (2015-01-17)
 
  - change 500 errors to 400s
