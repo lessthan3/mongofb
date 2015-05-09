@@ -314,7 +314,11 @@ exports.server = (cfg) ->
             options.limit ?= cfg.options.limit_default
           if cfg.options.limit_max
             options.limit = Math.min options.limit, cfg.options.limit_max
-          
+
+          # don't allow $where clauses in the criteria
+          if criteria.$where
+            return res.send 403, 'use of the $where operator is not allowed'
+
           # hooks
           hook 'before', 'find', [criteria, fields, options]
 

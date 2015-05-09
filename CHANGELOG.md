@@ -1,4 +1,8 @@
-**0.9.13** (2014-02-17)
+**0.9.14** (2015-05-08)
+
+ - do not allow $where queries
+
+**0.9.13** (2015-02-17)
 
  - fix error response for invalid ObjectIDs
 
