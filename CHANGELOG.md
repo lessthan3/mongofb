@@ -1,3 +1,7 @@
+**0.9.15** (2015-05-13)
+
+ - leave token in authenticated requests
+
 **0.9.14** (2015-05-08)
 
  - do not allow $where queries

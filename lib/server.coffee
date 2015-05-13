@@ -98,18 +98,13 @@ exports.server = (cfg) ->
       # helpers
       auth = (req, res, next) ->
         token = req.query?.token or req.body?.token
-        if token
-          delete req.query?.token
-          delete req.body?.token
-
+        if token and cfg.firebase
           try
             payload = jwt.decode token, cfg.firebase.secret
+            req.user = payload.d
+            req.admin = payload.admin
           catch err
-            return res.send 400, 'invalid token' if err
-
-          req.user = payload.d
-          req.admin = payload.admin
-          
+            req.token_parse_error = err
         next()
       
       _cache = new LRU cfg.cache
