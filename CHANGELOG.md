@@ -1,3 +1,7 @@
+**1.0.0** (2015-08-12)
+
+ - upgrade firebase from 1.0.15 to 2.2.9
+
 **0.9.15** (2015-05-13)
 
  - leave token in authenticated requests
