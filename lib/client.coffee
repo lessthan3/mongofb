@@ -206,7 +206,7 @@ class exports.Database
     }
 
   auth: (token, next) ->
-    @firebase.auth token, =>
+    @firebase.authWithCustomToken token, =>
       @token = token
       next()
 

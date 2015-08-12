@@ -73,7 +73,7 @@ exports.server = (cfg) ->
           expires: Date.now() + 1000*60*60*24*30
           admin: true
         }
-        fb.auth token, (err) ->
+        fb.authWithCustomToken token, (err) ->
           fb.admin_token = token
           next?(err)
           exports.fb = fb
